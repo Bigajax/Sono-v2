@@ -1,0 +1,1714 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowRight,
+  Check,
+  Clock,
+  CloudRain,
+  Flame,
+  Lock,
+  Moon,
+  Music,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Waves,
+  Wind,
+  X,
+} from 'lucide-react';
+import { useCheckout } from './hooks/useCheckout';
+import { trackPixel } from './lib/tracking';
+
+const EMAIL_GATE_EVENT = 'sono:open-email-gate';
+const LEAD_STORAGE_KEY = 'sono_lead_email';
+const MARKETING_STORAGE_KEY = 'sono_mkt_ctx';
+const NOITE1_GUEST_URL = 'https://ecofrontend888.vercel.app/sono/experiencia';
+
+// ============================================================
+// MARKETING CONTEXT (UTM + referrer) — first-touch attribution
+// ============================================================
+
+type MarketingUtm = {
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  term?: string;
+  content?: string;
+};
+
+type MarketingContext = {
+  utm: MarketingUtm;
+  referrer?: string;
+  landing_path?: string;
+};
+
+const UTM_KEYS: (keyof MarketingUtm)[] = ['source', 'medium', 'campaign', 'term', 'content'];
+
+function readMarketingContextFromUrl(): MarketingContext {
+  if (typeof window === 'undefined') return { utm: {} };
+  const params = new URLSearchParams(window.location.search);
+  const utm: MarketingUtm = {};
+  UTM_KEYS.forEach((k) => {
+    const v = params.get(`utm_${k}`);
+    if (v) utm[k] = v;
+  });
+  return {
+    utm,
+    referrer: document.referrer || undefined,
+    landing_path: window.location.pathname + window.location.search,
+  };
+}
+
+/**
+ * Retorna o contexto de marketing (UTM + referrer + landing_path).
+ * Preserva first-touch: salva no sessionStorage na primeira chamada com UTMs presentes
+ * e retorna o cache em chamadas subsequentes, mesmo que a URL tenha perdido os params.
+ */
+function getMarketingContext(): MarketingContext {
+  if (typeof window === 'undefined') return { utm: {} };
+  try {
+    const cached = sessionStorage.getItem(MARKETING_STORAGE_KEY);
+    if (cached) return JSON.parse(cached) as MarketingContext;
+  } catch {
+    /* sessionStorage indisponível — segue */
+  }
+  const fresh = readMarketingContextFromUrl();
+  // Só persiste se tiver pelo menos um UTM ou referrer (evita lixar com contexto vazio)
+  const hasSignal = Object.keys(fresh.utm).length > 0 || !!fresh.referrer;
+  if (hasSignal) {
+    try {
+      sessionStorage.setItem(MARKETING_STORAGE_KEY, JSON.stringify(fresh));
+    } catch {
+      /* ignore */
+    }
+  }
+  return fresh;
+}
+
+// ============================================================
+// DATA
+// ============================================================
+
+type ProtocolNight = {
+  night: number;
+  title: string;
+  duration: string;
+  sensation: string;
+  imageUrl: string;
+  isFree: boolean;
+};
+
+const protocolNights: ProtocolNight[] = [
+  { night: 1, title: 'A noite que seu corpo lembra como parar', duration: '8 min', sensation: '8 minutos. Você deita exausto. Termina mais leve.', imageUrl: '/images/desligando-estado-alerta.webp', isFree: true },
+  { night: 2, title: 'Quando você para de tentar dormir', duration: '9 min', sensation: 'O pensamento perde tração.', imageUrl: '/images/esvaziando-pensamentos.webp', isFree: false },
+  { night: 3, title: 'O peso que sai do peito', duration: '10 min', sensation: 'A tensão desce músculo a músculo.', imageUrl: '/images/respiracao-induz-sono.webp', isFree: false },
+  { night: 4, title: 'A mente para de revisar o dia', duration: '9 min', sensation: 'A mente para de revisar.', imageUrl: '/images/liberando-preocupacoes.webp', isFree: false },
+  { night: 5, title: 'O corpo entende que pode soltar', duration: '11 min', sensation: 'O peito solta.', imageUrl: '/images/criar-seguranca-interna.webp', isFree: false },
+  { night: 6, title: 'A noite em que você não percebe dormindo', duration: '12 min', sensation: 'O sono chega sem força.', imageUrl: '/images/sono-comeca-sozinho.webp', isFree: false },
+  { night: 7, title: 'Seu novo normal', duration: '10 min', sensation: 'O ritual fica automático.', imageUrl: '/images/consolidar-padrao.webp', isFree: false },
+];
+
+const night1 = protocolNights[0];
+const lockedNights = protocolNights.slice(1);
+
+const nightTimeline = [
+  { time: '23:47', text: 'Você apaga a luz. Sua mente acende.' },
+  { time: '01:15', text: 'Você olha o relógio. Faz conta.' },
+  { time: '04:22', text: 'Você acorda. A mente já está ligada.' },
+  {
+    time: '07:30',
+    text: 'Café, irritação, cansaço. Hoje à noite vai diferente.\nNão vai.',
+  },
+];
+
+type FloatingIcon = {
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
+  size: number;
+  bg: string;
+  position: React.CSSProperties;
+  delay: string;
+  hideOnMobile?: boolean;
+  phase: 1 | 2 | 3;
+  image?: string;
+};
+
+const floatingIcons: FloatingIcon[] = [
+  { Icon: Moon, size: 68, bg: '#6b8e9e', position: { top: '10%', left: '5%' }, delay: '0s', phase: 2, image: '/images/phases/lua-mar.webp' },
+  { Icon: CloudRain, size: 60, bg: '#8e6b9c', position: { top: '14%', right: '7%' }, delay: '1s', phase: 1, image: '/images/phases/nuvem-chuva.webp' },
+  { Icon: Flame, size: 56, bg: '#c47a4a', position: { top: '40%', left: '3%' }, delay: '2s', phase: 3, image: '/images/phases/floresta-lua.webp' },
+  { Icon: Waves, size: 52, bg: '#7da896', position: { top: '38%', right: '3%' }, delay: '0.5s', phase: 1, image: '/images/phases/ondas-verdes.webp' },
+  { Icon: Music, size: 56, bg: '#a88556', position: { bottom: '22%', left: '10%' }, delay: '1.5s', phase: 3, image: '/images/phases/som-dourado.webp' },
+  { Icon: Wind, size: 64, bg: '#5a8b9e', position: { bottom: '14%', right: '8%' }, delay: '2.5s', phase: 1, image: '/images/phases/ar.webp' },
+  { Icon: Star, size: 44, bg: '#3a3a3a', position: { bottom: '6%', left: '32%' }, delay: '0.8s', phase: 2, image: '/images/phases/cosmos.webp' },
+  { Icon: Sparkles, size: 48, bg: '#9b7a52', position: { top: '60%', right: '6%' }, delay: '1.8s', phase: 2, image: '/images/phases/meditacao.webp' },
+];
+
+const phaseData = [
+  { word: 'Respiração', color: '#0a0a0a' },
+  { word: 'Atenção plena', color: '#0a0a0a' },
+  { word: 'Segurança', color: '#c4c4be' },
+];
+
+const phaseRevealAt = [0.18, 0.48, 0.78];
+
+type Soundscape = {
+  image: string;
+  name: string;
+};
+
+const allSoundscapes: Soundscape[] = [
+  { image: '/images/sounds/chuva-suave.webp', name: 'Chuva suave' },
+  { image: '/images/sounds/tempestade-leve.webp', name: 'Tempestade leve' },
+  { image: '/images/sounds/cachoeira.webp', name: 'Cachoeira' },
+  { image: '/images/sounds/riacho.webp', name: 'Riacho' },
+  { image: '/images/sounds/vento-arvores.webp', name: 'Vento nas árvores' },
+  { image: '/images/sounds/meditacao-profunda.webp', name: 'Meditação Profunda' },
+  { image: '/images/sounds/tibetan-bowl.webp', name: 'Taças tibetanas' },
+  { image: '/images/sounds/flauta-nativa.webp', name: 'Flauta nativa' },
+  { image: '/images/sounds/mantras.webp', name: 'Mantras' },
+  { image: '/images/sounds/432hz.webp', name: 'Frequência 432Hz' },
+];
+
+const rotateArr = <T,>(arr: T[], n: number): T[] => [...arr.slice(n), ...arr.slice(0, n)];
+
+const partnerCompanies = [
+  { name: 'Nubank', logo: '/images/brands/nubank.webp', height: 32 },
+  { name: 'iFood', logo: '/images/brands/ifood.webp', height: 34 },
+  { name: 'Itaú', logo: '/images/brands/itau.webp', height: 38 },
+  { name: 'Globo', logo: '/images/brands/globo.svg', height: 46 },
+];
+
+const offerIncludes: { text: string; price: string | null }[] = [
+  { text: '7 áudios guiados (8 a 12 min cada) · narrados por Arabella', price: 'R$ 167' },
+  { text: '11 ambientes sonoros combináveis', price: 'R$ 67' },
+  { text: 'Meditação de emergência (3 min, para noites difíceis)', price: 'R$ 47' },
+  { text: 'Acesso vitalício, sem renovação', price: 'R$ 119' },
+  { text: 'Garantia de 7 dias', price: null },
+];
+
+type FaqItem = { q: string; a: string };
+
+const faqItems: FaqItem[] = [
+  { q: 'Preciso saber meditar pra funcionar?', a: 'Não. O protocolo é áudio guiado. A voz conduz, o som ancora. Você só precisa estar deitado. Se a mente fugir, ela volta sozinha quando ouve a voz.' },
+  { q: 'E se eu não conseguir dormir mesmo com o áudio?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência — às vezes na N1, às vezes na N3. Por isso são 7 noites.' },
+  { q: 'Quanto tempo leva pra funcionar?', a: 'A maioria sente diferença na respiração e na tensão do peito ainda na primeira noite. O sono mais consistente costuma aparecer entre a N3 e a N5.' },
+  { q: 'Funciona se eu já tomo remédio pra dormir?', a: 'Sim. O protocolo trabalha o sistema nervoso, não substitui medicação. Muitas pessoas usam junto e relatam que o efeito do remédio fica mais limpo.' },
+  { q: 'É só áudio? Não vai me encher de notificação?', a: 'Só áudio. De propósito. Notificação, gamificação e tela acesa às 23h é o oposto do que seu sistema nervoso precisa.' },
+  { q: 'Posso ouvir mais de uma vez?', a: 'Sim. Acesso vitalício. Muita gente repete a sequência depois de períodos de estresse.' },
+  { q: 'E se não funcionar pra mim?', a: '7 dias de garantia. Você escreve "não funcionou" e devolvemos. Sem formulário, sem ligação.' },
+  { q: 'Vou precisar continuar comprando coisas depois?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo — nenhuma cobrança volta a aparecer.' },
+];
+
+type Testimonial = {
+  name: string;
+  initial: string;
+  photo: string;
+  quote: string;
+  age: number;
+  city: string;
+  status: string;
+};
+
+const testimonials: Testimonial[] = [
+  {
+    name: 'Mariana L.',
+    initial: 'M',
+    photo: '/images/people/mariana.jpg',
+    quote:
+      'Não foi aquela coisa de apagar do nada. Eu só senti meu corpo parar de brigar com a cama. Foi a primeira noite em meses que não acordei no meio da madrugada calculando horas.',
+    age: 38,
+    city: 'São Paulo',
+    status: 'completou as 7 noites',
+  },
+  {
+    name: 'Caio R.',
+    initial: 'C',
+    photo: '/images/people/caio.jpg',
+    quote:
+      'Eu sempre ficava fazendo conta no relógio. Na terceira noite, percebi que tinha parado de calcular.',
+    age: 42,
+    city: 'Belo Horizonte',
+    status: 'na Noite 5',
+  },
+  {
+    name: 'Fernanda A.',
+    initial: 'F',
+    photo: '/images/people/fernanda.jpg',
+    quote:
+      'Não parece meditação. Parece que alguém guia o corpo a entender que o dia acabou. Meu peito foi soltando aos poucos.',
+    age: 35,
+    city: 'Curitiba',
+    status: 'completou as 7 noites',
+  },
+];
+
+// ============================================================
+// HOOKS
+// ============================================================
+
+function useScrollReveal() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
+
+// ============================================================
+// CTAs
+// ============================================================
+
+function useOpenNoite1Flow() {
+  return () => {
+    const existing =
+      typeof window !== 'undefined' ? localStorage.getItem(LEAD_STORAGE_KEY) : null;
+    if (existing) {
+      window.location.href = NOITE1_GUEST_URL;
+      return;
+    }
+    window.dispatchEvent(new CustomEvent(EMAIL_GATE_EVENT));
+  };
+}
+
+function PrimaryFreeCta({ id, full = false }: { id?: string; full?: boolean }) {
+  const handleClick = useOpenNoite1Flow();
+  return (
+    <button
+      id={id}
+      onClick={handleClick}
+      className={`btn-primary whitespace-nowrap ${full ? '!w-full' : ''}`}
+    >
+      Ouvir a Noite 1
+    </button>
+  );
+}
+
+function OutlineNightsLink() {
+  return (
+    <a href="#noites" className="btn-outline whitespace-nowrap">
+      Ver as 7 noites
+      <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
+    </a>
+  );
+}
+
+function PrimaryCheckoutCta({
+  label = 'Liberar protocolo completo',
+  full = false,
+  size,
+}: {
+  label?: string;
+  full?: boolean;
+  size?: 'lg';
+}) {
+  const { loading, openCheckout } = useCheckout();
+  const lgStyle = size === 'lg' ? { padding: '18px', fontSize: '17px' } : undefined;
+  return (
+    <button
+      onClick={openCheckout}
+      disabled={loading}
+      className={`btn-primary ${full ? 'w-full' : ''}`}
+      style={lgStyle}
+    >
+      {loading ? 'Abrindo checkout...' : label}
+      <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
+    </button>
+  );
+}
+
+function OutlineCheckoutCta({ label }: { label: string }) {
+  const { loading, openCheckout } = useCheckout();
+  return (
+    <button
+      onClick={openCheckout}
+      disabled={loading}
+      className="btn-outline"
+    >
+      {loading ? 'Abrindo...' : label}
+    </button>
+  );
+}
+
+// ============================================================
+// NAV
+// ============================================================
+
+function Nav() {
+  const openNoite1 = useOpenNoite1Flow();
+  return (
+    <nav className="fixed left-1/2 top-5 z-50 w-[min(640px,calc(100%-24px))] -translate-x-1/2 sm:top-6">
+      <div className="nav-pill flex items-center justify-between rounded-full px-5 py-3 sm:px-7 sm:py-3.5">
+        <a href="#topo" className="flex items-center">
+          <img
+            src="/images/logo-nav.webp"
+            alt="Ecotopia"
+            width={208}
+            height={52}
+            decoding="async"
+            fetchPriority="high"
+            className="-my-2 h-12 w-auto object-contain sm:h-[52px]"
+          />
+        </a>
+        <div className="hidden items-center gap-7 sm:flex">
+          <a href="#como-funciona" className="text-[14px] font-medium text-[#0a0a0a] transition-opacity hover:opacity-65">
+            Como funciona
+          </a>
+          <a href="#oferta" className="text-[14px] font-medium text-[#0a0a0a] transition-opacity hover:opacity-65">
+            Preço
+          </a>
+        </div>
+        <button
+          type="button"
+          onClick={openNoite1}
+          className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] sm:px-5 sm:py-2.5 sm:text-[14px]"
+        >
+          Noite 1 grátis
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+// ============================================================
+// 1 · HERO
+// ============================================================
+
+function AppIcon() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % protocolNights.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  const active = protocolNights[activeIndex];
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative inline-block app-icon-float">
+        <div className="app-icon-halo" />
+        <div className="pointer-events-none absolute -top-[9px] left-1/2 h-[5px] w-[55%] -translate-x-1/2 rounded-t-[6px] bg-[#dededa]" />
+        <div className="pointer-events-none absolute -top-[5px] left-1/2 h-[5px] w-[72%] -translate-x-1/2 rounded-t-[6px] bg-[#c8c8c2]" />
+
+        <div
+          className="relative h-[78px] w-[78px] overflow-hidden rounded-[18px] bg-[#0a0a0a] sm:h-[92px] sm:w-[92px] sm:rounded-[20px]"
+          style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.04)' }}
+        >
+          {protocolNights.map((night, i) => (
+            <img
+              key={night.night}
+              src={night.imageUrl}
+              alt=""
+              aria-hidden={i !== activeIndex}
+              width={92}
+              height={92}
+              decoding="async"
+              fetchPriority={i === 0 ? 'high' : 'low'}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out"
+              style={{ opacity: i === activeIndex ? 1 : 0 }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 text-center sm:mt-6">
+        <p
+          key={`eyebrow-${activeIndex}`}
+          className="label-flip text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d4a24c]"
+        >
+          Noite {active.night} · {active.duration}
+        </p>
+      </div>
+
+      <span className="sr-only" aria-live="polite">
+        Mostrando Noite {active.night}: {active.title}
+      </span>
+    </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section id="topo" className="relative px-5 pb-20 pt-28 sm:px-8 sm:pb-32 sm:pt-[150px]">
+      <div className="mx-auto max-w-5xl text-center">
+        <div className="reveal-soft flex justify-center">
+          <AppIcon />
+        </div>
+
+        <h1
+          className="reveal-soft animation-delay-100 h-display mx-auto mt-14 max-w-[900px] sm:mt-16"
+          style={{
+            fontSize: 'clamp(36px, 6.5vw, 84px)',
+            lineHeight: 1.0,
+            letterSpacing: '-0.035em',
+          }}
+        >
+          <span className="whitespace-nowrap">Você está cansado.</span>
+          <br />
+          <span className="whitespace-nowrap">Sua mente não.</span>
+        </h1>
+
+        <p
+          className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[640px] text-[#6b6b6b]"
+          style={{ fontSize: 'clamp(17px, 1.4vw, 19px)', lineHeight: 1.55 }}
+        >
+          Em sete noites, a mente aprende a soltar.
+        </p>
+
+        <div className="reveal-soft animation-delay-300 mt-12 flex flex-row items-center justify-center gap-2.5 sm:gap-3">
+          <PrimaryFreeCta id="hero-cta" />
+          <OutlineNightsLink />
+        </div>
+
+        <p className="reveal-soft animation-delay-400 mt-5 text-[13px] font-medium text-[#d4a24c]">
+          8 minutos · Hoje à noite, antes da luz apagar
+        </p>
+
+        <div className="reveal-soft animation-delay-500 mt-12 sm:mt-40">
+          <p className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-[#a8a8a3] sm:text-[10.5px]">
+            Entre nossos usuários, profissionais de
+          </p>
+          <div className="mx-auto mt-8 flex max-w-[1080px] flex-wrap items-center justify-center gap-x-7 gap-y-6 sm:mt-10 sm:gap-x-14 lg:gap-x-16">
+            {partnerCompanies.map(({ name, logo, height }, i) => (
+              <img
+                key={name}
+                src={logo}
+                alt={name}
+                loading="lazy"
+                decoding="async"
+                className={`brand-logo w-auto scroll-reveal stagger-${(i % 6) + 1}`}
+                style={{
+                  height: `${Math.round(height * 0.88)}px`,
+                  maxHeight: `${height}px`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 2 · PAIN MIRROR
+// ============================================================
+
+function PainMirror() {
+  return (
+    <section className="bg-[#fafaf7] px-5 py-20 sm:px-8 sm:py-[120px]">
+      <div className="scroll-reveal mx-auto max-w-[720px] text-center">
+        <p className="eyebrow mb-7">Se você dorme assim</p>
+        <h2
+          className="h-section mx-auto"
+          style={{ fontSize: 'clamp(28px, 4.5vw, 56px)' }}
+        >
+          <span className="whitespace-nowrap">Você não tem insônia.</span>
+          <br />
+          Tem uma mente
+          <br className="sm:hidden" />
+          {' '}que não desliga.
+        </h2>
+      </div>
+
+      <div className="scroll-reveal mx-auto mt-16 grid max-w-[1080px] gap-8 sm:mt-20 sm:grid-cols-2 sm:gap-10 lg:gap-14">
+        <div className="relative overflow-hidden rounded-[20px] bg-[#0a0a0a] aspect-[4/3] sm:aspect-[4/5]">
+          <img
+            src="/images/quarto-noite-insonia.webp"
+            alt="Teto de quarto à noite visto de baixo"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
+
+        <div className="flex flex-col justify-center">
+          {nightTimeline.map((item, i) => (
+            <div
+              key={item.time}
+              className={`scroll-reveal stagger-${(i % 5) + 1} flex flex-col gap-2 py-6 sm:flex-row sm:items-center sm:gap-7 sm:py-8 ${
+                i < nightTimeline.length - 1 ? 'border-b border-[#e5e5e2]' : ''
+              }`}
+            >
+              <p
+                className="shrink-0 text-[32px] font-bold leading-none tracking-[-0.01em] text-[#0a0a0a] sm:text-[32px]"
+                style={{ fontVariantNumeric: 'tabular-nums', minWidth: '92px' }}
+              >
+                {item.time}
+              </p>
+              <p
+                className="text-[15.5px] leading-[1.5] text-[#6b6b6b] sm:text-[16px]"
+                style={{ whiteSpace: 'pre-line' }}
+              >
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="scroll-reveal mx-auto mt-20 max-w-[720px] text-center">
+        <p
+          className="h-section"
+          style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+        >
+          Você não precisa
+          <br className="sm:hidden" />
+          {' '}de mais sono.
+        </p>
+        <p
+          className="h-section mt-1 text-[#6b6b6b]"
+          style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+        >
+          Precisa parar de lutar pelo sono.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 3 · MECHANISM
+// ============================================================
+
+function Mechanism() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const phaseRefs = useRef<(HTMLHeadingElement | null)[]>([]);
+  const outroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let raf = 0;
+
+    const tick = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const denom = section.offsetHeight - window.innerHeight;
+      if (denom <= 0) return;
+      const scrolled = -rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / denom));
+
+      phaseRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const start = phaseRevealAt[i] - 0.16;
+        const end = phaseRevealAt[i];
+        let t = (progress - start) / (end - start);
+        t = Math.max(0, Math.min(1, t));
+        el.style.opacity = String(t);
+        el.style.transform = `translate3d(0, ${(1 - t) * 40}px, 0)`;
+      });
+
+      if (outroRef.current) {
+        const start = 0.86;
+        const end = 0.96;
+        let t = (progress - start) / (end - start);
+        t = Math.max(0, Math.min(1, t));
+        outroRef.current.style.opacity = String(t);
+        outroRef.current.style.transform = `translate3d(0, ${(1 - t) * 24}px, 0)`;
+      }
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    };
+
+    tick();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  return (
+    <section
+      id="como-funciona"
+      ref={sectionRef}
+      className="phases-section relative bg-white"
+    >
+      <div className="phases-sticky sticky top-0 flex h-screen items-center justify-center overflow-hidden">
+        {floatingIcons.map(({ Icon, size, bg, position, delay, hideOnMobile, image }, i) => (
+          <div
+            key={i}
+            aria-hidden
+            className={`floating-icon absolute z-[1] overflow-hidden ${
+              hideOnMobile ? 'hidden sm:block' : 'block'
+            } ${image ? '' : 'flex items-center justify-center'}`}
+            style={{
+              ...position,
+              width: `${size}px`,
+              height: `${size}px`,
+              borderRadius: '18px',
+              backgroundColor: image ? 'transparent' : bg,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+              animationDelay: delay,
+            }}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Icon
+                className="text-white"
+                strokeWidth={1.85}
+                style={{
+                  width: `${Math.round(size * 0.42)}px`,
+                  height: `${Math.round(size * 0.42)}px`,
+                }}
+              />
+            )}
+          </div>
+        ))}
+
+        <div className="relative z-[2] flex w-full max-w-[1100px] flex-col items-center px-5 text-center">
+          <p className="eyebrow mb-6">Como funciona</p>
+          <p className="mx-auto max-w-[480px] text-[15px] font-medium leading-[1.5] text-[#0a0a0a] sm:text-[17px]">
+            Três fases.
+            <span className="text-[#6b6b6b]"> Você só precisa estar deitado.</span>
+          </p>
+
+          <div className="mt-4 flex flex-col items-center sm:mt-6">
+            {phaseData.map((p, i) => (
+              <h2
+                key={p.word}
+                ref={(el) => {
+                  phaseRefs.current[i] = el;
+                }}
+                className="h-display phase-word"
+                style={{
+                  fontSize: 'clamp(36px, 7vw, 96px)',
+                  lineHeight: 1.0,
+                  letterSpacing: '-0.04em',
+                  color: p.color,
+                  opacity: 0,
+                  transform: 'translate3d(0, 40px, 0)',
+                  willChange: 'opacity, transform',
+                }}
+              >
+                {p.word}
+              </h2>
+            ))}
+          </div>
+
+          <div
+            ref={outroRef}
+            className="mt-16 sm:mt-20"
+            style={{
+              opacity: 0,
+              transform: 'translate3d(0, 24px, 0)',
+              willChange: 'opacity, transform',
+            }}
+          >
+            <p className="text-[16px] font-medium text-[#0a0a0a] sm:text-[18px]">
+              A voz guia.
+            </p>
+            <p className="mt-1 text-[15px] text-[#6b6b6b] sm:text-[17px]">
+              O corpo lembra.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 3B · SOUND EXPERIENCE
+// ============================================================
+
+function SoundCard({ image, name }: Soundscape) {
+  return (
+    <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+      <div className="zoom-img-container h-12 w-12 shrink-0 rounded-[12px] bg-[#f3f3ee] sm:h-14 sm:w-14 sm:rounded-[14px]">
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <p className="whitespace-nowrap text-[16.5px] font-bold tracking-[-0.005em] text-[#0a0a0a] sm:text-[19px]">
+        {name}
+      </p>
+    </div>
+  );
+}
+
+function useMarqueeAnimation(
+  refs: React.RefObject<HTMLDivElement>[],
+  speeds: number[],
+  initialOffsets: number[],
+) {
+  useEffect(() => {
+    let raf = 0;
+    let lastTime = performance.now();
+    const offsets = [...initialOffsets];
+
+    const tick = (now: number) => {
+      const dt = Math.min(now - lastTime, 50) / 1000;
+      lastTime = now;
+
+      refs.forEach((ref, i) => {
+        const el = ref.current;
+        if (!el) return;
+        const halfWidth = el.scrollWidth / 2;
+        if (halfWidth === 0) return;
+        offsets[i] += speeds[i] * dt;
+        while (offsets[i] <= -halfWidth) offsets[i] += halfWidth;
+        while (offsets[i] > 0) offsets[i] -= halfWidth;
+        el.style.transform = `translate3d(${offsets[i]}px, 0, 0)`;
+      });
+
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [refs, speeds, initialOffsets]);
+}
+
+function SoundExperience() {
+  const row1 = [...allSoundscapes, ...allSoundscapes];
+  const row2 = [...rotateArr(allSoundscapes, 3), ...rotateArr(allSoundscapes, 3)];
+  const row3 = [...rotateArr(allSoundscapes, 6), ...rotateArr(allSoundscapes, 6)];
+
+  const row1Ref = useRef<HTMLDivElement>(null);
+  const row2Ref = useRef<HTMLDivElement>(null);
+  const row3Ref = useRef<HTMLDivElement>(null);
+  const refs = useMemo(() => [row1Ref, row2Ref, row3Ref], []);
+  const speeds = useMemo(() => [-22, 26, -18], []);
+  const initialOffsets = useMemo(() => [0, -120, -240], []);
+  useMarqueeAnimation(refs, speeds, initialOffsets);
+
+  return (
+    <section className="border-y border-[#f0f0ec] bg-[#fafaf7] py-16 sm:py-[100px]">
+      <div className="scroll-reveal mx-auto max-w-3xl px-5 text-center sm:px-8">
+        <p className="eyebrow mb-7">O som da sua noite</p>
+        <h2 className="h-section mx-auto" style={{ fontSize: 'clamp(28px, 4vw, 48px)' }}>
+          Onze sons.
+          <br />
+          Sua mente escolhe.
+        </h2>
+
+        <p className="mx-auto mt-7 max-w-[480px] text-[16px] leading-[1.55] text-[#6b6b6b] sm:text-[17px]">
+          A voz de Arabella guia. O som te ancora.
+        </p>
+      </div>
+
+      <div className="marquee-mask mt-12">
+        <div ref={row1Ref} className="marquee-track">
+          {row1.map((s, i) => (
+            <SoundCard key={`r1-${i}`} {...s} />
+          ))}
+        </div>
+        <div ref={row2Ref} className="marquee-track mt-4">
+          {row2.map((s, i) => (
+            <SoundCard key={`r2-${i}`} {...s} />
+          ))}
+        </div>
+        <div ref={row3Ref} className="marquee-track mt-4">
+          {row3.map((s, i) => (
+            <SoundCard key={`r3-${i}`} {...s} />
+          ))}
+        </div>
+      </div>
+
+      <p className="mx-auto mt-8 max-w-[640px] px-5 text-center text-[14px] text-[#999]">
+        Nunca a mesma noite duas vezes.
+      </p>
+    </section>
+  );
+}
+
+// ============================================================
+// 4 · NIGHTS GRID
+// ============================================================
+
+function NightsGrid() {
+  return (
+    <section id="noites" className="bg-[#f3f3ee] px-5 py-20 sm:px-8 sm:py-[120px]">
+      <div className="scroll-reveal mx-auto max-w-3xl">
+        <p className="eyebrow mb-7">O protocolo</p>
+        <h2 className="h-section" style={{ fontSize: 'clamp(30px, 4.5vw, 56px)' }}>
+          Sete noites. <br className="sm:hidden" />Em sequência.
+          <br />
+          <span className="text-[#6b6b6b]">
+            Cada uma prepara <br className="sm:hidden" />a próxima.
+          </span>
+        </h2>
+        <p className="mt-7 max-w-xl text-[17px] leading-[1.6] text-[#6b6b6b]">
+          Você não recomeça toda noite. Você continua.
+        </p>
+
+        <div className="scroll-reveal reveal-scale lift-card mt-12 overflow-hidden rounded-2xl border border-[#e5e5e2] bg-white">
+          <div className="zoom-img-container relative">
+            <img
+              src={night1.imageUrl}
+              alt={night1.title}
+              loading="lazy"
+              decoding="async"
+              className="h-[280px] w-full object-cover sm:h-[360px]"
+            />
+            <span className="absolute left-5 top-5 inline-flex items-center rounded-full bg-[#0a0a0a] px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-white">
+              Grátis
+            </span>
+          </div>
+          <div className="px-7 py-7 sm:px-8 sm:py-8">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#999]">
+              Noite 1 · {night1.duration}
+            </p>
+            <h3 className="mt-2.5 text-[24px] font-bold leading-tight tracking-[-0.02em] text-[#0a0a0a] sm:text-[28px]">
+              {night1.title}
+            </h3>
+            <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-[#6b6b6b]">
+              {night1.sensation}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2.5 sm:hidden">
+          {lockedNights.map((night, i) => (
+            <div
+              key={night.night}
+              className={`scroll-reveal stagger-${(i % 5) + 1} lift-card flex items-center gap-3 overflow-hidden rounded-2xl border border-[#e5e5e2] bg-white p-3`}
+            >
+              <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl">
+                <img
+                  src={night.imageUrl}
+                  alt={night.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#999]">
+                  Noite {night.night} · {night.duration}
+                </p>
+                <h3 className="mt-1 text-[15.5px] font-bold leading-snug text-[#0a0a0a]">
+                  {night.title}
+                </h3>
+              </div>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f3f3ee]">
+                <Lock className="h-3.5 w-3.5 text-[#999]" strokeWidth={2} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 hidden gap-4 sm:grid sm:grid-cols-3">
+          {lockedNights.map((night, i) => (
+            <div
+              key={night.night}
+              className={`scroll-reveal stagger-${(i % 5) + 1} lift-card overflow-hidden rounded-xl border border-[#e5e5e2] bg-white`}
+            >
+              <div className="relative">
+                <img
+                  src={night.imageUrl}
+                  alt={night.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[16/9] w-full object-cover"
+                />
+                <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm">
+                  <Lock className="h-3.5 w-3.5 text-[#0a0a0a]" strokeWidth={2} />
+                </div>
+              </div>
+              <div className="px-5 py-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#999]">
+                  Noite {night.night} · {night.duration}
+                </p>
+                <h3 className="mt-2 text-[18px] font-bold leading-snug text-[#0a0a0a]">
+                  {night.title}
+                </h3>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 5 · TESTIMONIALS
+// ============================================================
+
+function FeaturedTestimonialCard({ t }: { t: Testimonial }) {
+  return (
+    <article className="relative overflow-hidden rounded-3xl border border-[#e5e5e2] bg-white px-6 py-9 transition-all duration-200 sm:px-10 sm:py-12 sm:hover:-translate-y-0.5 sm:hover:border-[#d4d4d0]">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-5 top-2 select-none font-black leading-none text-[#d4a24c] opacity-40 sm:left-8 sm:top-4"
+        style={{ fontSize: '72px', fontFamily: 'inherit' }}
+      >
+        “
+      </span>
+
+      <blockquote className="relative mt-8 pl-1 sm:mt-6 sm:pl-2">
+        <p className="text-[19px] font-medium leading-[1.4] tracking-[-0.005em] text-[#0a0a0a] sm:text-[22px]">
+          {t.quote}
+        </p>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-6 right-0 select-none font-black leading-none text-[#d4a24c] opacity-40 sm:-bottom-8"
+          style={{ fontSize: '72px', fontFamily: 'inherit' }}
+        >
+          ”
+        </span>
+      </blockquote>
+
+      <div className="mt-12 border-t border-[#f0f0ec] pt-5 sm:mt-14">
+        <div className="flex items-center gap-3.5">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-[#f3f3ee] ring-1 ring-[#e5e5e2]">
+            <img
+              src={t.photo}
+              alt={t.name}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold tracking-[-0.005em] text-[#0a0a0a]">
+              {t.name}
+            </p>
+            <p className="mt-0.5 text-[13px] leading-snug text-[#6b6b6b]">
+              {t.age} anos · {t.city} · {t.status}
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SecondaryTestimonialCard({ t }: { t: Testimonial }) {
+  return (
+    <article className="relative overflow-hidden rounded-[20px] border border-[#e5e5e2] bg-white px-6 py-7 transition-all duration-200 sm:px-7 sm:py-8 sm:hover:-translate-y-0.5 sm:hover:border-[#d4d4d0]">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-4 top-2 select-none font-black leading-none text-[#d4a24c] opacity-40 sm:left-5 sm:top-3"
+        style={{ fontSize: '48px', fontFamily: 'inherit' }}
+      >
+        “
+      </span>
+
+      <p className="mt-6 text-[16px] font-medium leading-[1.45] tracking-[-0.005em] text-[#0a0a0a] sm:mt-7 sm:text-[17px]">
+        {t.quote}
+      </p>
+
+      <div className="mt-7 border-t border-[#f0f0ec] pt-4 sm:mt-8">
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#f3f3ee] ring-1 ring-[#e5e5e2]">
+            <img
+              src={t.photo}
+              alt={t.name}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold tracking-[-0.005em] text-[#0a0a0a]">
+              {t.name}
+            </p>
+            <p className="mt-0.5 text-[12.5px] leading-snug text-[#6b6b6b]">
+              {t.age} anos · {t.city} · {t.status}
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function Testimonials() {
+  const [featured, ...secondary] = testimonials;
+
+  return (
+    <section className="bg-[#fafaf7] px-5 py-20 sm:px-8 sm:py-[100px]">
+      <div className="mx-auto max-w-[760px]">
+        <div className="scroll-reveal text-center">
+          <p className="eyebrow mb-7">O que elas dizem</p>
+          <h2
+            className="h-section mx-auto"
+            style={{ fontSize: 'clamp(32px, 4.5vw, 56px)' }}
+          >
+            Três pessoas que pararam
+            <br />
+            <span className="text-[#6b6b6b]">de fazer conta no relógio.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-[440px] text-[16px] leading-[1.55] text-[#6b6b6b]">
+            Mensagens reais de quem completou o protocolo.
+          </p>
+        </div>
+
+        <div className="scroll-reveal reveal-scale mt-14">
+          <FeaturedTestimonialCard t={featured} />
+        </div>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          {secondary.map((t, i) => (
+            <div key={t.name} className={`scroll-reveal stagger-${i + 1}`}>
+              <SecondaryTestimonialCard t={t} />
+            </div>
+          ))}
+        </div>
+
+        <p className="scroll-reveal mx-auto mt-14 max-w-[520px] text-center text-[15px] leading-[1.5] text-[#6b6b6b] sm:mt-16">
+          A maioria das pessoas que completa a Noite 1
+          <br className="sm:hidden" />
+          {' '}volta para a Noite 2 sem precisar lembrar.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 6 · OFFER
+// ============================================================
+
+function Offer() {
+  const openNoite1 = useOpenNoite1Flow();
+  return (
+    <section id="oferta" className="bg-[#f3f3ee] px-5 py-20 sm:px-8 sm:py-[120px]">
+      <div className="scroll-reveal reveal-scale mx-auto max-w-[640px]">
+        <div className="offer-card overflow-hidden rounded-3xl bg-white px-6 pb-12 pt-12 sm:px-14 sm:pb-[56px] sm:pt-[56px]">
+          <p className="text-center text-[12px] font-bold uppercase tracking-[0.1em] text-[#d4a24c]">
+            Protocolo Completo — 7 Noites
+          </p>
+
+          <h2
+            className="mx-auto mt-6 max-w-md text-center font-black leading-[1.04] tracking-[-0.03em] text-[#0a0a0a]"
+            style={{ fontSize: 'clamp(24px, 4vw, 38px)' }}
+          >
+            <span className="whitespace-nowrap">A Noite 1 abre a porta.</span>
+            <br />
+            <span className="text-[#6b6b6b]">
+              As próximas seis
+              <br className="sm:hidden" />
+              {' '}fixam o caminho.
+            </span>
+          </h2>
+
+          <p className="mx-auto mt-7 max-w-lg text-center text-[16px] leading-[1.6] text-[#6b6b6b] sm:text-[17px]">
+            Em sete noites, seu corpo aprende a encontrar o sono sem ajuda. O protocolo sai. A capacidade fica.
+          </p>
+          <p className="mx-auto mt-2.5 max-w-lg text-center text-[13px] font-medium text-[#999]">
+            Pagamento único. Sem renovação. Acesso vitalício.
+          </p>
+
+          <ul className="mx-auto my-8 flex max-w-[420px] flex-col gap-3 border-y border-[#f0f0ec] py-5">
+            {offerIncludes.map((item, i) => (
+              <li key={item.text} className={`scroll-reveal stagger-${(i % 5) + 1} flex items-start justify-between gap-3`}>
+                <span className="flex items-start gap-2.5">
+                  <Check
+                    className="mt-[3px] h-4 w-4 shrink-0 text-[#d4a24c]"
+                    strokeWidth={2.25}
+                  />
+                  <span className="text-[14px] font-medium leading-[1.45] text-[#0a0a0a]">
+                    {item.text}
+                  </span>
+                </span>
+                {item.price && (
+                  <span className="shrink-0 text-[13px] font-medium tabular-nums text-[#a8a8a3] line-through">
+                    {item.price}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <div className="my-10 text-center">
+            <p className="text-[14px] font-medium text-[#a8a8a3]">
+              Valor total: <span className="line-through">R$ 400</span>
+            </p>
+            <p
+              className="mt-1 font-black leading-[0.95] tracking-[-0.04em] text-[#0a0a0a]"
+              style={{ fontSize: 'clamp(64px, 13vw, 96px)' }}
+            >
+              R$ 147
+            </p>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#999]">
+              Hoje · Pagamento único · 7 noites completas
+            </p>
+          </div>
+
+          <div className="scroll-reveal stagger-6 mx-auto flex max-w-md items-center gap-2.5 rounded-lg bg-[#fff8ec] px-5 py-3">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-[#d4a24c]" strokeWidth={2.25} />
+            <span className="text-[13px] leading-[1.5] text-[#6b6b6b]">
+              Preço de lançamento. Depois passa para <span className="font-bold text-[#0a0a0a]">R$ 247</span>.
+            </span>
+          </div>
+
+          <div className="mt-8">
+            <PrimaryCheckoutCta label="Começar agora · R$ 147" full size="lg" />
+          </div>
+
+          <div className="scroll-reveal stagger-7 mx-auto mt-6 flex max-w-md items-start justify-center gap-2.5">
+            <ShieldCheck className="mt-[2px] h-4 w-4 shrink-0 text-[#d4a24c]" strokeWidth={2} />
+            <p className="text-[13px] leading-[1.55] text-[#6b6b6b]">
+              <span className="font-bold text-[#0a0a0a]">Garantia de 7 dias.</span>{' '}
+              Não funcionou? Devolvemos. Sem formulário, sem pergunta. Email basta.
+            </p>
+          </div>
+
+          <div className="mt-5 text-center">
+            <button
+              type="button"
+              onClick={openNoite1}
+              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#999] transition-colors hover:text-[#0a0a0a] hover:underline"
+            >
+              Prefiro testar a Noite 1 primeiro <span aria-hidden>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 7 · FAQ
+// ============================================================
+
+function Faq() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className="bg-[#fafaf7] px-4 py-20 sm:px-8 sm:py-[120px]">
+      <div className="scroll-reveal mx-auto max-w-[920px] overflow-hidden rounded-[24px] shadow-[0_8px_32px_rgba(10,10,10,0.04)] sm:rounded-[32px]">
+        <div className="bg-[#e8dfd1] px-6 py-9 sm:px-12 sm:py-14">
+          <span className="inline-flex items-center rounded-md bg-white/55 px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#6b6b6b]">
+            FAQ
+          </span>
+          <h2
+            className="h-section mt-5 sm:mt-7"
+            style={{ fontSize: 'clamp(30px, 5vw, 56px)' }}
+          >
+            Antes de você fechar
+            <br className="sm:hidden" />
+            <span className="hidden sm:inline"> </span>
+            essa página.
+          </h2>
+        </div>
+
+        <div className="bg-white px-5 sm:px-12">
+          {faqItems.map((item, i) => {
+            const open = openIndex === i;
+            return (
+              <div key={i} className={`scroll-reveal stagger-${(i % 6) + 1} border-b border-[#ececea] last:border-b-0`}>
+                <button
+                  type="button"
+                  onClick={() => setOpenIndex(open ? null : i)}
+                  className="flex w-full items-center justify-between gap-5 py-5 text-left transition-opacity hover:opacity-75 sm:gap-8 sm:py-6"
+                  aria-expanded={open}
+                >
+                  <h3 className="flex-1 text-[15.5px] font-medium leading-snug tracking-[-0.005em] text-[#0a0a0a] sm:text-[17px]">
+                    {item.q}
+                  </h3>
+                  <span
+                    aria-hidden
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-300 sm:h-10 sm:w-10 ${
+                      open
+                        ? 'rotate-90 border-[#0a0a0a] bg-[#0a0a0a] text-white'
+                        : 'border-[#cfcfca] text-[#0a0a0a]'
+                    }`}
+                  >
+                    <ArrowRight className="h-[14px] w-[14px] sm:h-4 sm:w-4" strokeWidth={2} />
+                  </span>
+                </button>
+                <div
+                  className={`overflow-hidden transition-[max-height,opacity] duration-400 ease-out ${
+                    open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <p className="max-w-2xl pb-6 pr-2 text-[15px] leading-[1.65] text-[#6b6b6b] sm:pb-7 sm:pr-12 sm:text-[16px]">
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 8 · FINAL CTA
+// ============================================================
+
+function FinalCta() {
+  return (
+    <section className="bg-[#f3f3ee] px-5 py-24 text-center sm:px-8 sm:py-[140px]">
+      <div className="mx-auto max-w-5xl">
+        <h2
+          className="scroll-reveal h-display mx-auto max-w-[900px]"
+          style={{
+            fontSize: 'clamp(48px, 6.5vw, 84px)',
+            lineHeight: 1.0,
+            letterSpacing: '-0.035em',
+          }}
+        >
+          Hoje à noite,
+          <br />
+          antes da luz apagar.
+        </h2>
+        <p
+          className="scroll-reveal stagger-1 mx-auto mt-8 max-w-xl text-[#6b6b6b]"
+          style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', lineHeight: 1.55 }}
+        >
+          Você deita. Aperta play. Oito minutos depois, o corpo já está em outro lugar.
+        </p>
+
+        <div className="scroll-reveal stagger-2 mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <PrimaryFreeCta />
+          <OutlineCheckoutCta label="Quero as 7 noites por R$ 147" />
+        </div>
+
+        <p className="scroll-reveal stagger-3 mt-8 text-[12px] font-medium tracking-[0.04em] text-[#999]">
+          Você não tem mais nada a perder com a cama.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// EMAIL GATE MODAL
+// ============================================================
+
+function EmailGate() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = () => {
+      setError(null);
+      setOpen(true);
+      window.setTimeout(() => inputRef.current?.focus(), 80);
+    };
+    window.addEventListener(EMAIL_GATE_EVENT, handler);
+    return () => window.removeEventListener(EMAIL_GATE_EVENT, handler);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError('Digite um email válido.');
+      inputRef.current?.focus();
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      localStorage.setItem(LEAD_STORAGE_KEY, trimmed);
+    } catch {
+      /* localStorage indisponível — segue */
+    }
+
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+      const mkt = getMarketingContext();
+      try {
+        await fetch(`${apiUrl}/api/leads/sono-noite1`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: trimmed,
+            source: 'sono_landing_hero',
+            utm: mkt.utm,
+            referrer: mkt.referrer ?? null,
+            landing_path: mkt.landing_path ?? null,
+          }),
+        });
+      } catch {
+        /* fire-and-forget — não bloqueia redirect */
+      }
+    }
+
+    trackPixel('Lead', {
+      content_name: 'Noite 1 grátis',
+      content_category: 'protocolo_sono',
+      value: 0,
+      currency: 'BRL',
+    });
+
+    window.location.href = NOITE1_GUEST_URL;
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="email-gate-title"
+      className="fixed inset-0 z-[100] flex items-center justify-center px-5"
+      onClick={(e) => {
+        if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+          setOpen(false);
+        }
+      }}
+      style={{
+        background: 'rgba(0,0,0,0.4)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        animation: 'gateFade 0.25s ease-out',
+      }}
+    >
+      <div
+        ref={cardRef}
+        className="relative w-full max-w-[440px] rounded-[24px] bg-[#fafaf7] px-7 py-9 sm:px-10 sm:py-10"
+        style={{
+          boxShadow: '0 24px 60px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
+          animation: 'gateRise 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Fechar"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-[#0a0a0a]/5 hover:text-[#0a0a0a]"
+        >
+          <X className="h-4 w-4" strokeWidth={2} />
+        </button>
+
+        <h2
+          id="email-gate-title"
+          className="pr-8 text-[24px] font-bold leading-tight tracking-[-0.02em] text-[#0a0a0a]"
+        >
+          Sua Noite 1 está pronta.
+        </h2>
+        <p className="mt-2 text-[15px] leading-[1.5] text-[#6b6b6b]">
+          Liberamos por email. Ouça quando deitar.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6">
+          <input
+            ref={inputRef}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
+            placeholder="seu@email.com"
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? 'email-gate-error' : undefined}
+            className="w-full rounded-full border border-[#e5e5e2] bg-white px-[18px] py-[14px] text-[15px] text-[#0a0a0a] placeholder:text-[#a8a8a3] focus:border-[#0a0a0a] focus:outline-none"
+            style={error ? { borderColor: '#c14a4a' } : undefined}
+          />
+          {error && (
+            <p
+              id="email-gate-error"
+              className="mt-2 pl-1 text-[12.5px] font-medium text-[#c14a4a]"
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn-primary mt-3 w-full"
+          >
+            {submitting ? 'Liberando…' : 'Liberar Noite 1'}
+            {!submitting && (
+              <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
+            )}
+          </button>
+
+          <p className="mt-4 text-center text-[12px] font-medium text-[#999]">
+            Sem spam. Acesso vitalício à Noite 1.
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// STICKY MOBILE BAR
+// ============================================================
+
+function StickyFreeBar() {
+  const [visible, setVisible] = useState(false);
+  const [offerSeen, setOfferSeen] = useState(false);
+  const { loading, openCheckout } = useCheckout();
+  const openNoite1 = useOpenNoite1Flow();
+
+  // Visibilidade — aparece após scroll
+  useEffect(() => {
+    const heroCta = document.getElementById('hero-cta');
+    if (!heroCta) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(window.scrollY >= 280 || !entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+
+    const updateFromScroll = () => {
+      const rect = heroCta.getBoundingClientRect();
+      const ctaIsVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      setVisible(window.scrollY >= 280 || !ctaIsVisible);
+    };
+
+    observer.observe(heroCta);
+    updateFromScroll();
+    window.addEventListener('scroll', updateFromScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateFromScroll);
+    };
+  }, []);
+
+  // Modo dinâmico — quando a seção de oferta entra ou já passou, sticky vira CTA pago
+  useEffect(() => {
+    const offerEl = document.getElementById('oferta');
+    if (!offerEl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+          setOfferSeen(true);
+        }
+      },
+      { rootMargin: '0px 0px -100px 0px' }
+    );
+
+    observer.observe(offerEl);
+
+    // Caso o usuário entre no meio da página já depois da oferta
+    const rect = offerEl.getBoundingClientRect();
+    if (rect.top < window.innerHeight) setOfferSeen(true);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const eyebrow = offerSeen
+    ? 'Protocolo completo · pagamento único'
+    : 'Noite 1 · 8 min · grátis';
+  const label = offerSeen ? 'Garantir por R$ 147' : 'Começar minha Noite 1';
+  const onClick = offerSeen ? openCheckout : openNoite1;
+  const isLoading = offerSeen && loading;
+
+  return (
+    <div
+      className={`fixed inset-x-0 bottom-0 z-[80] transition-transform duration-300 ease-out sm:hidden ${
+        visible ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+      }`}
+      style={{
+        background: 'rgba(248,248,244,0.92)',
+        backdropFilter: 'blur(18px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+        borderTop: '1px solid rgba(10,10,10,0.06)',
+        boxShadow: '0 -8px 24px rgba(10,10,10,0.05)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      <div className="px-4 pb-3 pt-2.5">
+        <div className="mb-2 flex items-center justify-center gap-1.5">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d4a24c]" aria-hidden />
+          <p
+            key={eyebrow}
+            className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6b6b6b] transition-opacity duration-300"
+            style={{ animation: 'gateFade 0.3s ease' }}
+          >
+            {eyebrow}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={isLoading}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a0a0a] py-[15px] text-[15.5px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#1a1a1a] active:bg-[#1a1a1a] disabled:opacity-60"
+          style={{ boxShadow: '0 8px 20px rgba(10,10,10,0.18)' }}
+        >
+          <span key={label} style={{ animation: 'gateFade 0.3s ease' }}>
+            {isLoading ? 'Abrindo checkout…' : label}
+          </span>
+          {!isLoading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// APP
+// ============================================================
+
+function App() {
+  useScrollReveal();
+  const { loading: autoCheckoutLoading, openCheckout } = useCheckout();
+  const autoCheckoutFired = useRef(false);
+  const [autoCheckoutTriggered, setAutoCheckoutTriggered] = useState(false);
+
+  useEffect(() => {
+    // Persiste UTMs no sessionStorage logo no primeiro render (first-touch attribution)
+    getMarketingContext();
+  }, []);
+
+  useEffect(() => {
+    if (autoCheckoutFired.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === '1') {
+      autoCheckoutFired.current = true;
+      setAutoCheckoutTriggered(true);
+      openCheckout();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="bg-[#0a0a0a]">
+      <main
+        className="min-h-screen overflow-x-clip bg-[#fafaf7] text-[#0a0a0a]"
+        style={{ borderBottomLeftRadius: '40px', borderBottomRightRadius: '40px' }}
+      >
+        <Nav />
+
+        <Hero />
+        <PainMirror />
+        <Mechanism />
+        <SoundExperience />
+        <NightsGrid />
+        <Testimonials />
+        <Offer />
+        <Faq />
+        <FinalCta />
+      </main>
+
+      <footer className="bg-[#0a0a0a] text-white">
+        <div className="mx-auto max-w-6xl px-6 pb-32 pt-16 sm:px-12 sm:pb-12 sm:pt-20">
+          <div className="grid gap-12 sm:grid-cols-2 sm:gap-20">
+            <div>
+              <img
+                src="/images/logo-nav.webp"
+                alt="Ecotopia"
+                loading="lazy"
+                decoding="async"
+                className="h-14 w-auto object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <p className="mt-5 max-w-sm text-[15px] leading-[1.55] text-white/55">
+                Um protocolo do ecossistema Ecotopia.
+                <br />
+                <span className="text-white/40">Sono. Mente. Silêncio.</span>
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4 sm:items-end sm:text-right">
+              <a
+                href="#como-funciona"
+                className="text-[15px] font-semibold text-white transition-opacity hover:opacity-70"
+              >
+                Como funciona
+              </a>
+              <a
+                href="#noites"
+                className="text-[15px] font-semibold text-white transition-opacity hover:opacity-70"
+              >
+                As 7 noites
+              </a>
+              <a
+                href="#oferta"
+                className="text-[15px] font-semibold text-white transition-opacity hover:opacity-70"
+              >
+                Preço
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-16 border-t border-white/10 pt-8 sm:mt-20">
+            <p className="mx-auto mt-6 mb-4 max-w-[520px] text-left text-[12px] leading-[1.5] text-[#a8a8a3] sm:text-center">
+              Protocolo desenvolvido com base em princípios de regulação do sistema
+              nervoso autônomo. Não substitui acompanhamento médico ou psicológico.
+            </p>
+            <div className="flex flex-col items-start gap-3 text-[13px] text-white/45 sm:flex-row sm:items-center sm:justify-between">
+              <p className="uppercase tracking-[0.08em]">
+                Protocolo Sono Profundo · 7 noites
+              </p>
+              <p>© 2026 Ecotopia</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <StickyFreeBar />
+      <EmailGate />
+
+      {autoCheckoutTriggered && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0a0a]/95 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-4 px-6 text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+            <p className="text-[15px] font-medium text-white">
+              {autoCheckoutLoading ? 'Abrindo pagamento seguro…' : 'Redirecionando…'}
+            </p>
+            <p className="text-[13px] text-white/55">
+              Você será levado ao Mercado Pago em instantes.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
