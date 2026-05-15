@@ -4,49 +4,49 @@ const ACCENT = '#6B4FBB';
 
 const nights = [
   {
-    num: 1, duration: '5 min', isFree: true,
+    num: 1, duration: '5 min',
     title: 'Desligando o Estado de Alerta',
     desc: 'A maioria das pessoas deita em modo de batalha. Esta noite você sai dele.',
     image: '/images/desligando-estado-alerta.webp',
     gradient: 'linear-gradient(to bottom, #4A4E8A 0%, #14172E 100%)',
   },
   {
-    num: 2, duration: '5 min', isFree: false,
+    num: 2, duration: '5 min',
     title: 'Respiração que Induz o Sono',
     desc: 'Uma técnica que desacelera seu sistema nervoso em minutos.',
     image: '/images/respiracao-induz-sono.webp',
     gradient: 'linear-gradient(to bottom, #6B5B95 0%, #251A45 100%)',
   },
   {
-    num: 3, duration: '5 min', isFree: false,
+    num: 3, duration: '5 min',
     title: 'Esvaziando Pensamentos Repetitivos',
     desc: 'Para quando a mesma coisa fica passando na sua cabeça às 2h da manhã.',
     image: '/images/esvaziando-pensamentos.webp',
     gradient: 'linear-gradient(to bottom, #5B6B95 0%, #1A2545 100%)',
   },
   {
-    num: 4, duration: '5 min', isFree: false,
+    num: 4, duration: '5 min',
     title: 'Liberando Preocupações do Dia',
     desc: 'O amanhã pode esperar. Esta noite, você descansa.',
     image: '/images/liberando-preocupacoes.webp',
     gradient: 'linear-gradient(to bottom, #7B5B8A 0%, #2A1A40 100%)',
   },
   {
-    num: 5, duration: '4 min', isFree: false,
+    num: 5, duration: '4 min',
     title: 'Silêncio Interno Guiado',
     desc: 'Quando o silêncio de fora ainda não é suficiente para calar o de dentro.',
     image: '/images/silencio-interno-guiado.webp',
     gradient: 'linear-gradient(to bottom, #4A6B8A 0%, #142045 100%)',
   },
   {
-    num: 6, duration: '4 min', isFree: false,
+    num: 6, duration: '4 min',
     title: 'Indução ao Sono Profundo',
     desc: 'A noite mais profunda da jornada. Prepare-se para despertar diferente.',
     image: '/images/inducao-sono-profundo.webp',
     gradient: 'linear-gradient(to bottom, #6B4A8A 0%, #20142E 100%)',
   },
   {
-    num: 7, duration: '4 min', isFree: false,
+    num: 7, duration: '4 min',
     title: 'Consolidação do Novo Padrão',
     desc: 'Você chegou até aqui. Agora isso vira parte de quem você é.',
     image: '/images/consolidacao-padrao-sono.webp',
@@ -63,12 +63,6 @@ function NightScreen({ night }: { night: typeof nights[0] }) {
         style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
       />
       <div style={{ position: 'absolute', inset: 0, background: night.gradient, opacity: 0.6 }} />
-
-      {night.isFree && (
-        <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(107,79,187,0.85)', backdropFilter: 'blur(6px)', borderRadius: '20px', padding: '2px 9px' }}>
-          <span style={{ color: 'white', fontSize: '8px', fontWeight: 500, letterSpacing: '1px', textTransform: 'uppercase' }}>Incluído</span>
-        </div>
-      )}
 
       <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', borderRadius: '20px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
         <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" opacity="0.7"/><polyline points="12 6 12 12 16 14" stroke="white" strokeWidth="1.5" fill="none"/></svg>
@@ -154,16 +148,16 @@ function Method() {
               width: '178px',
               background: '#FFFFFF',
               borderRadius: '14px',
-              border: night.isFree ? `1px solid rgba(107,79,187,0.28)` : '1px solid rgba(107,79,187,0.08)',
+              border: night.num === 1 ? `1px solid rgba(107,79,187,0.28)` : '1px solid rgba(107,79,187,0.08)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: night.isFree ? '0 4px 20px rgba(107,79,187,0.1)' : '0 2px 12px rgba(0,0,0,0.05)',
+              boxShadow: night.num === 1 ? '0 4px 20px rgba(107,79,187,0.1)' : '0 2px 12px rgba(0,0,0,0.05)',
             }}
           >
             <NightScreen night={night} />
             <div style={{ padding: '11px 13px 15px', textAlign: 'left', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: night.isFree ? ACCENT : 'rgba(107,79,187,0.45)', fontSize: '8.5px', fontWeight: 400, letterSpacing: '1.2px', textTransform: 'uppercase', margin: 0 }}>
+              <p style={{ color: night.num === 1 ? ACCENT : 'rgba(107,79,187,0.45)', fontSize: '8.5px', fontWeight: 400, letterSpacing: '1.2px', textTransform: 'uppercase', margin: 0 }}>
                 {`Noite ${night.num}`}
               </p>
               <p style={{ fontSize: '12.5px', fontWeight: 500, color: '#12121E', margin: 0, lineHeight: 1.3 }}>{night.title}</p>

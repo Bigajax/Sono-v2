@@ -13,15 +13,10 @@ import {
   Star,
   Waves,
   Wind,
-  X,
 } from 'lucide-react';
 import { useCheckout } from './hooks/useCheckout';
-import { trackPixel } from './lib/tracking';
 
-const EMAIL_GATE_EVENT = 'sono:open-email-gate';
-const LEAD_STORAGE_KEY = 'sono_lead_email';
 const MARKETING_STORAGE_KEY = 'sono_mkt_ctx';
-const NOITE1_GUEST_URL = 'https://ecofrontend888.vercel.app/sono/experiencia';
 
 // ============================================================
 // MARKETING CONTEXT (UTM + referrer) — first-touch attribution
@@ -94,21 +89,20 @@ type ProtocolNight = {
   duration: string;
   sensation: string;
   imageUrl: string;
-  isFree: boolean;
 };
 
 const protocolNights: ProtocolNight[] = [
-  { night: 1, title: 'A noite que seu corpo lembra como parar', duration: '8 min', sensation: '8 minutos. Você deita exausto. Termina mais leve.', imageUrl: '/images/desligando-estado-alerta.webp', isFree: true },
-  { night: 2, title: 'Quando você para de tentar dormir', duration: '9 min', sensation: 'O pensamento perde tração.', imageUrl: '/images/esvaziando-pensamentos.webp', isFree: false },
-  { night: 3, title: 'O peso que sai do peito', duration: '10 min', sensation: 'A tensão desce músculo a músculo.', imageUrl: '/images/respiracao-induz-sono.webp', isFree: false },
-  { night: 4, title: 'A mente para de revisar o dia', duration: '9 min', sensation: 'A mente para de revisar.', imageUrl: '/images/liberando-preocupacoes.webp', isFree: false },
-  { night: 5, title: 'O corpo entende que pode soltar', duration: '11 min', sensation: 'O peito solta.', imageUrl: '/images/criar-seguranca-interna.webp', isFree: false },
-  { night: 6, title: 'A noite em que você não percebe dormindo', duration: '12 min', sensation: 'O sono chega sem força.', imageUrl: '/images/sono-comeca-sozinho.webp', isFree: false },
-  { night: 7, title: 'Seu novo normal', duration: '10 min', sensation: 'O ritual fica automático.', imageUrl: '/images/consolidar-padrao.webp', isFree: false },
+  { night: 1, title: 'A noite que seu corpo lembra como parar', duration: '8 min', sensation: '8 minutos. Você deita exausto. Termina mais leve.', imageUrl: '/images/desligando-estado-alerta.webp' },
+  { night: 2, title: 'Quando você para de tentar dormir', duration: '9 min', sensation: 'O pensamento perde tração.', imageUrl: '/images/esvaziando-pensamentos.webp' },
+  { night: 3, title: 'O peso que sai do peito', duration: '10 min', sensation: 'A tensão desce músculo a músculo.', imageUrl: '/images/respiracao-induz-sono.webp' },
+  { night: 4, title: 'A mente para de revisar o dia', duration: '9 min', sensation: 'A mente para de revisar.', imageUrl: '/images/liberando-preocupacoes.webp' },
+  { night: 5, title: 'O corpo entende que pode soltar', duration: '11 min', sensation: 'O peito solta.', imageUrl: '/images/criar-seguranca-interna.webp' },
+  { night: 6, title: 'A noite em que você não percebe dormindo', duration: '12 min', sensation: 'O sono chega sem força.', imageUrl: '/images/sono-comeca-sozinho.webp' },
+  { night: 7, title: 'Seu novo normal', duration: '10 min', sensation: 'O ritual fica automático.', imageUrl: '/images/consolidar-padrao.webp' },
 ];
 
 const night1 = protocolNights[0];
-const lockedNights = protocolNights.slice(1);
+const restNights = protocolNights.slice(1);
 
 const nightTimeline = [
   { time: '23:47', text: 'Você apaga a luz. Sua mente acende.' },
@@ -189,13 +183,14 @@ type FaqItem = { q: string; a: string };
 
 const faqItems: FaqItem[] = [
   { q: 'Preciso saber meditar pra funcionar?', a: 'Não. O protocolo é áudio guiado. A voz conduz, o som ancora. Você só precisa estar deitado. Se a mente fugir, ela volta sozinha quando ouve a voz.' },
-  { q: 'E se eu não conseguir dormir mesmo com o áudio?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência — às vezes na N1, às vezes na N3. Por isso são 7 noites.' },
+  { q: 'E se eu não conseguir dormir já na primeira noite?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência — às vezes na N1, às vezes na N3. Por isso são 7 noites. Se não funcionar, você tem 7 dias de garantia.' },
   { q: 'Quanto tempo leva pra funcionar?', a: 'A maioria sente diferença na respiração e na tensão do peito ainda na primeira noite. O sono mais consistente costuma aparecer entre a N3 e a N5.' },
   { q: 'Funciona se eu já tomo remédio pra dormir?', a: 'Sim. O protocolo trabalha o sistema nervoso, não substitui medicação. Muitas pessoas usam junto e relatam que o efeito do remédio fica mais limpo.' },
   { q: 'É só áudio? Não vai me encher de notificação?', a: 'Só áudio. De propósito. Notificação, gamificação e tela acesa às 23h é o oposto do que seu sistema nervoso precisa.' },
   { q: 'Posso ouvir mais de uma vez?', a: 'Sim. Acesso vitalício. Muita gente repete a sequência depois de períodos de estresse.' },
-  { q: 'E se não funcionar pra mim?', a: '7 dias de garantia. Você escreve "não funcionou" e devolvemos. Sem formulário, sem ligação.' },
+  { q: 'E se não funcionar pra mim?', a: '7 dias de garantia incondicional. Você escreve "não funcionou" e devolvemos 100%. Sem formulário, sem ligação, sem pergunta.' },
   { q: 'Vou precisar continuar comprando coisas depois?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo — nenhuma cobrança volta a aparecer.' },
+  { q: 'Como recebo o protocolo depois de pagar?', a: 'Na hora. O pagamento é processado pelo Mercado Pago e você recebe o acesso imediato no seu email. Pode ouvir a Noite 1 hoje mesmo.' },
 ];
 
 type Testimonial = {
@@ -267,31 +262,6 @@ function useScrollReveal() {
 // CTAs
 // ============================================================
 
-function useOpenNoite1Flow() {
-  return () => {
-    const existing =
-      typeof window !== 'undefined' ? localStorage.getItem(LEAD_STORAGE_KEY) : null;
-    if (existing) {
-      window.location.href = NOITE1_GUEST_URL;
-      return;
-    }
-    window.dispatchEvent(new CustomEvent(EMAIL_GATE_EVENT));
-  };
-}
-
-function PrimaryFreeCta({ id, full = false }: { id?: string; full?: boolean }) {
-  const handleClick = useOpenNoite1Flow();
-  return (
-    <button
-      id={id}
-      onClick={handleClick}
-      className={`btn-primary whitespace-nowrap ${full ? '!w-full' : ''}`}
-    >
-      Ouvir a Noite 1
-    </button>
-  );
-}
-
 function OutlineNightsLink() {
   return (
     <a href="#noites" className="btn-outline whitespace-nowrap">
@@ -302,10 +272,12 @@ function OutlineNightsLink() {
 }
 
 function PrimaryCheckoutCta({
-  label = 'Liberar protocolo completo',
+  id,
+  label = 'Quero dormir hoje · R$ 147',
   full = false,
   size,
 }: {
+  id?: string;
   label?: string;
   full?: boolean;
   size?: 'lg';
@@ -314,13 +286,14 @@ function PrimaryCheckoutCta({
   const lgStyle = size === 'lg' ? { padding: '18px', fontSize: '17px' } : undefined;
   return (
     <button
+      id={id}
       onClick={openCheckout}
       disabled={loading}
-      className={`btn-primary ${full ? 'w-full' : ''}`}
+      className={`btn-primary whitespace-nowrap ${full ? '!w-full' : ''}`}
       style={lgStyle}
     >
-      {loading ? 'Abrindo checkout...' : label}
-      <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
+      {loading ? 'Abrindo checkout…' : label}
+      {!loading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
     </button>
   );
 }
@@ -333,7 +306,7 @@ function OutlineCheckoutCta({ label }: { label: string }) {
       disabled={loading}
       className="btn-outline"
     >
-      {loading ? 'Abrindo...' : label}
+      {loading ? 'Abrindo…' : label}
     </button>
   );
 }
@@ -343,7 +316,7 @@ function OutlineCheckoutCta({ label }: { label: string }) {
 // ============================================================
 
 function Nav() {
-  const openNoite1 = useOpenNoite1Flow();
+  const { loading, openCheckout } = useCheckout();
   return (
     <nav className="fixed left-1/2 top-5 z-50 w-[min(640px,calc(100%-24px))] -translate-x-1/2 sm:top-6">
       <div className="nav-pill flex items-center justify-between rounded-full px-5 py-3 sm:px-7 sm:py-3.5">
@@ -368,10 +341,11 @@ function Nav() {
         </div>
         <button
           type="button"
-          onClick={openNoite1}
-          className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] sm:px-5 sm:py-2.5 sm:text-[14px]"
+          onClick={openCheckout}
+          disabled={loading}
+          className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] disabled:opacity-60 sm:px-5 sm:py-2.5 sm:text-[14px]"
         >
-          Noite 1 grátis
+          {loading ? 'Abrindo…' : 'Quero por R$ 147'}
         </button>
       </div>
     </nav>
@@ -464,16 +438,16 @@ function Hero() {
           className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[640px] text-[#6b6b6b]"
           style={{ fontSize: 'clamp(17px, 1.4vw, 19px)', lineHeight: 1.55 }}
         >
-          Em sete noites, a mente aprende a soltar.
+          Em sete noites, a mente aprende a soltar. Pagamento único. Acesso vitalício.
         </p>
 
         <div className="reveal-soft animation-delay-300 mt-12 flex flex-row items-center justify-center gap-2.5 sm:gap-3">
-          <PrimaryFreeCta id="hero-cta" />
+          <PrimaryCheckoutCta id="hero-cta" label="Quero por R$ 147" />
           <OutlineNightsLink />
         </div>
 
         <p className="reveal-soft animation-delay-400 mt-5 text-[13px] font-medium text-[#d4a24c]">
-          8 minutos · Hoje à noite, antes da luz apagar
+          Garantia de 7 dias · Comece hoje, antes da luz apagar
         </p>
 
         <div className="reveal-soft animation-delay-500 mt-12 sm:mt-40">
@@ -871,7 +845,7 @@ function NightsGrid() {
               className="h-[280px] w-full object-cover sm:h-[360px]"
             />
             <span className="absolute left-5 top-5 inline-flex items-center rounded-full bg-[#0a0a0a] px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-white">
-              Grátis
+              A primeira
             </span>
           </div>
           <div className="px-7 py-7 sm:px-8 sm:py-8">
@@ -888,7 +862,7 @@ function NightsGrid() {
         </div>
 
         <div className="mt-4 flex flex-col gap-2.5 sm:hidden">
-          {lockedNights.map((night, i) => (
+          {restNights.map((night, i) => (
             <div
               key={night.night}
               className={`scroll-reveal stagger-${(i % 5) + 1} lift-card flex items-center gap-3 overflow-hidden rounded-2xl border border-[#e5e5e2] bg-white p-3`}
@@ -918,7 +892,7 @@ function NightsGrid() {
         </div>
 
         <div className="mt-4 hidden gap-4 sm:grid sm:grid-cols-3">
-          {lockedNights.map((night, i) => (
+          {restNights.map((night, i) => (
             <div
               key={night.night}
               className={`scroll-reveal stagger-${(i % 5) + 1} lift-card overflow-hidden rounded-xl border border-[#e5e5e2] bg-white`}
@@ -1078,9 +1052,9 @@ function Testimonials() {
         </div>
 
         <p className="scroll-reveal mx-auto mt-14 max-w-[520px] text-center text-[15px] leading-[1.5] text-[#6b6b6b] sm:mt-16">
-          A maioria das pessoas que completa a Noite 1
+          A maioria começa na Noite 1
           <br className="sm:hidden" />
-          {' '}volta para a Noite 2 sem precisar lembrar.
+          {' '}e termina as 7 sem precisar lembrar.
         </p>
       </div>
     </section>
@@ -1092,7 +1066,6 @@ function Testimonials() {
 // ============================================================
 
 function Offer() {
-  const openNoite1 = useOpenNoite1Flow();
   return (
     <section id="oferta" className="bg-[#f3f3ee] px-5 py-20 sm:px-8 sm:py-[120px]">
       <div className="scroll-reveal reveal-scale mx-auto max-w-[640px]">
@@ -1105,12 +1078,12 @@ function Offer() {
             className="mx-auto mt-6 max-w-md text-center font-black leading-[1.04] tracking-[-0.03em] text-[#0a0a0a]"
             style={{ fontSize: 'clamp(24px, 4vw, 38px)' }}
           >
-            <span className="whitespace-nowrap">A Noite 1 abre a porta.</span>
+            <span className="whitespace-nowrap">Sete noites.</span>
             <br />
             <span className="text-[#6b6b6b]">
-              As próximas seis
+              Um pagamento.
               <br className="sm:hidden" />
-              {' '}fixam o caminho.
+              {' '}Pra sempre.
             </span>
           </h2>
 
@@ -1171,20 +1144,14 @@ function Offer() {
           <div className="scroll-reveal stagger-7 mx-auto mt-6 flex max-w-md items-start justify-center gap-2.5">
             <ShieldCheck className="mt-[2px] h-4 w-4 shrink-0 text-[#d4a24c]" strokeWidth={2} />
             <p className="text-[13px] leading-[1.55] text-[#6b6b6b]">
-              <span className="font-bold text-[#0a0a0a]">Garantia de 7 dias.</span>{' '}
-              Não funcionou? Devolvemos. Sem formulário, sem pergunta. Email basta.
+              <span className="font-bold text-[#0a0a0a]">Garantia incondicional de 7 dias.</span>{' '}
+              Não funcionou? Devolvemos 100%. Sem formulário, sem pergunta. Email basta.
             </p>
           </div>
 
-          <div className="mt-5 text-center">
-            <button
-              type="button"
-              onClick={openNoite1}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#999] transition-colors hover:text-[#0a0a0a] hover:underline"
-            >
-              Prefiro testar a Noite 1 primeiro <span aria-hidden>→</span>
-            </button>
-          </div>
+          <p className="mt-5 text-center text-[12px] font-medium text-[#999]">
+            Pagamento seguro via Mercado Pago · Pix, cartão ou boleto
+          </p>
         </div>
       </div>
     </section>
@@ -1287,12 +1254,11 @@ function FinalCta() {
         </p>
 
         <div className="scroll-reveal stagger-2 mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PrimaryFreeCta />
-          <OutlineCheckoutCta label="Quero as 7 noites por R$ 147" />
+          <PrimaryCheckoutCta label="Quero as 7 noites · R$ 147" size="lg" />
         </div>
 
         <p className="scroll-reveal stagger-3 mt-8 text-[12px] font-medium tracking-[0.04em] text-[#999]">
-          Você não tem mais nada a perder com a cama.
+          Pagamento único · Garantia de 7 dias · Acesso vitalício
         </p>
       </div>
     </section>
@@ -1300,203 +1266,16 @@ function FinalCta() {
 }
 
 // ============================================================
-// EMAIL GATE MODAL
-// ============================================================
-
-function EmailGate() {
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = () => {
-      setError(null);
-      setOpen(true);
-      window.setTimeout(() => inputRef.current?.focus(), 80);
-    };
-    window.addEventListener(EMAIL_GATE_EVENT, handler);
-    return () => window.removeEventListener(EMAIL_GATE_EVENT, handler);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const trimmed = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setError('Digite um email válido.');
-      inputRef.current?.focus();
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      localStorage.setItem(LEAD_STORAGE_KEY, trimmed);
-    } catch {
-      /* localStorage indisponível — segue */
-    }
-
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (apiUrl) {
-      const mkt = getMarketingContext();
-      try {
-        await fetch(`${apiUrl}/api/leads/sono-noite1`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: trimmed,
-            source: 'sono_landing_hero',
-            utm: mkt.utm,
-            referrer: mkt.referrer ?? null,
-            landing_path: mkt.landing_path ?? null,
-          }),
-        });
-      } catch {
-        /* fire-and-forget — não bloqueia redirect */
-      }
-    }
-
-    trackPixel('Lead', {
-      content_name: 'Noite 1 grátis',
-      content_category: 'protocolo_sono',
-      value: 0,
-      currency: 'BRL',
-    });
-
-    window.location.href = NOITE1_GUEST_URL;
-  };
-
-  if (!open) return null;
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="email-gate-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center px-5"
-      onClick={(e) => {
-        if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
-          setOpen(false);
-        }
-      }}
-      style={{
-        background: 'rgba(0,0,0,0.4)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        animation: 'gateFade 0.25s ease-out',
-      }}
-    >
-      <div
-        ref={cardRef}
-        className="relative w-full max-w-[440px] rounded-[24px] bg-[#fafaf7] px-7 py-9 sm:px-10 sm:py-10"
-        style={{
-          boxShadow: '0 24px 60px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
-          animation: 'gateRise 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          aria-label="Fechar"
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-[#0a0a0a]/5 hover:text-[#0a0a0a]"
-        >
-          <X className="h-4 w-4" strokeWidth={2} />
-        </button>
-
-        <h2
-          id="email-gate-title"
-          className="pr-8 text-[24px] font-bold leading-tight tracking-[-0.02em] text-[#0a0a0a]"
-        >
-          Sua Noite 1 está pronta.
-        </h2>
-        <p className="mt-2 text-[15px] leading-[1.5] text-[#6b6b6b]">
-          Liberamos por email. Ouça quando deitar.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6">
-          <input
-            ref={inputRef}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error) setError(null);
-            }}
-            placeholder="seu@email.com"
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? 'email-gate-error' : undefined}
-            className="w-full rounded-full border border-[#e5e5e2] bg-white px-[18px] py-[14px] text-[15px] text-[#0a0a0a] placeholder:text-[#a8a8a3] focus:border-[#0a0a0a] focus:outline-none"
-            style={error ? { borderColor: '#c14a4a' } : undefined}
-          />
-          {error && (
-            <p
-              id="email-gate-error"
-              className="mt-2 pl-1 text-[12.5px] font-medium text-[#c14a4a]"
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary mt-3 w-full"
-          >
-            {submitting ? 'Liberando…' : 'Liberar Noite 1'}
-            {!submitting && (
-              <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
-            )}
-          </button>
-
-          <p className="mt-4 text-center text-[12px] font-medium text-[#999]">
-            Sem spam. Acesso vitalício à Noite 1.
-          </p>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
 // STICKY MOBILE BAR
 // ============================================================
 
-function StickyFreeBar() {
+function StickyCheckoutBar() {
   const [visible, setVisible] = useState(false);
-  const [offerSeen, setOfferSeen] = useState(false);
   const { loading, openCheckout } = useCheckout();
-  const openNoite1 = useOpenNoite1Flow();
 
-  // Visibilidade — aparece após scroll
   useEffect(() => {
     const heroCta = document.getElementById('hero-cta');
     if (!heroCta) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setVisible(window.scrollY >= 280 || !entry.isIntersecting);
-      },
-      { threshold: 0.15 }
-    );
 
     const updateFromScroll = () => {
       const rect = heroCta.getBoundingClientRect();
@@ -1504,45 +1283,13 @@ function StickyFreeBar() {
       setVisible(window.scrollY >= 280 || !ctaIsVisible);
     };
 
-    observer.observe(heroCta);
     updateFromScroll();
     window.addEventListener('scroll', updateFromScroll, { passive: true });
 
     return () => {
-      observer.disconnect();
       window.removeEventListener('scroll', updateFromScroll);
     };
   }, []);
-
-  // Modo dinâmico — quando a seção de oferta entra ou já passou, sticky vira CTA pago
-  useEffect(() => {
-    const offerEl = document.getElementById('oferta');
-    if (!offerEl) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
-          setOfferSeen(true);
-        }
-      },
-      { rootMargin: '0px 0px -100px 0px' }
-    );
-
-    observer.observe(offerEl);
-
-    // Caso o usuário entre no meio da página já depois da oferta
-    const rect = offerEl.getBoundingClientRect();
-    if (rect.top < window.innerHeight) setOfferSeen(true);
-
-    return () => observer.disconnect();
-  }, []);
-
-  const eyebrow = offerSeen
-    ? 'Protocolo completo · pagamento único'
-    : 'Noite 1 · 8 min · grátis';
-  const label = offerSeen ? 'Garantir por R$ 147' : 'Começar minha Noite 1';
-  const onClick = offerSeen ? openCheckout : openNoite1;
-  const isLoading = offerSeen && loading;
 
   return (
     <div
@@ -1561,25 +1308,19 @@ function StickyFreeBar() {
       <div className="px-4 pb-3 pt-2.5">
         <div className="mb-2 flex items-center justify-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d4a24c]" aria-hidden />
-          <p
-            key={eyebrow}
-            className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6b6b6b] transition-opacity duration-300"
-            style={{ animation: 'gateFade 0.3s ease' }}
-          >
-            {eyebrow}
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6b6b6b]">
+            Protocolo completo · 7 noites · garantia
           </p>
         </div>
         <button
           type="button"
-          onClick={onClick}
-          disabled={isLoading}
+          onClick={openCheckout}
+          disabled={loading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a0a0a] py-[15px] text-[15.5px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#1a1a1a] active:bg-[#1a1a1a] disabled:opacity-60"
           style={{ boxShadow: '0 8px 20px rgba(10,10,10,0.18)' }}
         >
-          <span key={label} style={{ animation: 'gateFade 0.3s ease' }}>
-            {isLoading ? 'Abrindo checkout…' : label}
-          </span>
-          {!isLoading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
+          <span>{loading ? 'Abrindo checkout…' : 'Quero por R$ 147'}</span>
+          {!loading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
         </button>
       </div>
     </div>
@@ -1687,8 +1428,7 @@ function App() {
         </div>
       </footer>
 
-      <StickyFreeBar />
-      <EmailGate />
+      <StickyCheckoutBar />
 
       {autoCheckoutTriggered && (
         <div
