@@ -1364,8 +1364,8 @@ function App() {
         <Hero />
         <PainMirror />
         <Mechanism />
-        <SoundExperience />
         <NightsGrid />
+        <SoundExperience />
         <Testimonials />
         <Offer />
         <Faq />
