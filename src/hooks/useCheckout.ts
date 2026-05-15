@@ -22,9 +22,14 @@ export function useCheckout() {
     setLoading(true);
 
     try {
-      // VITE_API_URL vazio = dev local com proxy Vite (caminho relativo /api/...)
-      // VITE_API_URL preenchido = produção (URL absoluta do backend)
-      const apiUrl = import.meta.env.VITE_API_URL ?? '';
+      // Em produção sempre bate no backend Render. Em dev local (npm run dev no host),
+      // VITE_API_URL='' usa o proxy do Vite. Hostname localhost = dev → proxy.
+      const isLocalDev =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const apiUrl = isLocalDev
+        ? (import.meta.env.VITE_API_URL ?? '')
+        : (import.meta.env.VITE_API_URL || 'https://ecobackend888.onrender.com');
 
       const utm = getUtmParams();
 
