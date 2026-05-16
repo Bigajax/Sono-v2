@@ -19,7 +19,7 @@ import { useCheckout } from './hooks/useCheckout';
 const MARKETING_STORAGE_KEY = 'sono_mkt_ctx';
 
 // ============================================================
-// MARKETING CONTEXT (UTM + referrer) — first-touch attribution
+// MARKETING CONTEXT (UTM + referrer): first-touch attribution
 // ============================================================
 
 type MarketingUtm = {
@@ -64,7 +64,7 @@ function getMarketingContext(): MarketingContext {
     const cached = sessionStorage.getItem(MARKETING_STORAGE_KEY);
     if (cached) return JSON.parse(cached) as MarketingContext;
   } catch {
-    /* sessionStorage indisponível — segue */
+    /* sessionStorage indisponível: segue */
   }
   const fresh = readMarketingContextFromUrl();
   // Só persiste se tiver pelo menos um UTM ou referrer (evita lixar com contexto vazio)
@@ -176,7 +176,7 @@ const partnerCompanies = [
 ];
 
 const offerIncludes: { text: string; price: string | null }[] = [
-  { text: 'Acesso ao app com 7 meditações guiadas (8 a 12 min cada) — narradas por Arabella', price: 'R$ 167' },
+  { text: 'Acesso ao app com 7 meditações guiadas (8 a 12 min cada), narradas por Arabella', price: 'R$ 167' },
   { text: '11 ambientes sonoros combináveis dentro do app', price: 'R$ 67' },
   { text: 'Meditação de emergência (3 min, pra noites difíceis)', price: 'R$ 47' },
   { text: 'Acesso vitalício, sem renovação', price: 'R$ 119' },
@@ -188,20 +188,20 @@ type FaqItem = { q: string; a: string };
 const faqItems: FaqItem[] = [
   {
     q: 'Já tentei Calm, Headspace, melatonina. Por que isso seria diferente?',
-    a: 'Esses produtos te dão ferramentas soltas. O app te dá uma sequência fechada. A diferença é que você não precisa decidir nada — é só abrir, apertar play, na ordem. A mente cansada não tem mais uma decisão pra tomar.',
+    a: 'Esses produtos te dão ferramentas soltas. O app te dá uma sequência fechada. A diferença é que você não precisa decidir nada: é só abrir, apertar play, na ordem. A mente cansada não tem mais uma decisão pra tomar.',
   },
   {
     q: 'Por que pagamento único e não assinatura mensal como os outros apps?',
-    a: 'Porque a meta é você não precisar mais do app. Assinatura cria dependência do produto. O protocolo termina em 7 noites — depois é seu, pra sempre, pra repetir quando precisar.',
+    a: 'Porque a meta é você não precisar mais do app. Assinatura cria dependência do produto. O protocolo termina em 7 noites. Depois é seu, pra sempre, pra repetir quando precisar.',
   },
   { q: 'Preciso saber meditar pra funcionar?', a: 'Não. O protocolo é áudio guiado. A voz conduz, o som ancora. Você só precisa estar deitado. Se a mente fugir, ela volta sozinha quando ouve a voz.' },
-  { q: 'E se eu não conseguir dormir já na primeira noite?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência — às vezes na N1, às vezes na N3. Por isso são 7 noites. Se não funcionar, você tem 7 dias de garantia.' },
+  { q: 'E se eu não conseguir dormir já na primeira noite?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência: às vezes na N1, às vezes na N3. Por isso são 7 noites. Se não funcionar, você tem 7 dias de garantia.' },
   { q: 'Quanto tempo leva pra funcionar?', a: 'A maioria sente diferença na respiração e na tensão do peito ainda na primeira noite. O sono mais consistente costuma aparecer entre a N3 e a N5.' },
   { q: 'Funciona se eu já tomo remédio pra dormir?', a: 'Sim. O protocolo trabalha o sistema nervoso, não substitui medicação. Muitas pessoas usam junto e relatam que o efeito do remédio fica mais limpo.' },
   { q: 'É só áudio? Não vai me encher de notificação?', a: 'Só áudio. De propósito. Notificação, gamificação e tela acesa às 23h é o oposto do que seu sistema nervoso precisa.' },
   { q: 'Posso ouvir mais de uma vez?', a: 'Sim. Acesso vitalício. Muita gente repete a sequência depois de períodos de estresse.' },
   { q: 'E se não funcionar pra mim?', a: '7 dias de garantia incondicional. Você escreve "não funcionou" e devolvemos 100%. Sem formulário, sem ligação, sem pergunta.' },
-  { q: 'Vou precisar continuar comprando coisas depois?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo — nenhuma cobrança volta a aparecer.' },
+  { q: 'Vou precisar continuar comprando coisas depois?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo. Nenhuma cobrança volta a aparecer.' },
   { q: 'Como recebo o protocolo depois de pagar?', a: 'Na hora. O pagamento é processado pelo Mercado Pago e você recebe o acesso imediato no seu email. Pode ouvir a Noite 1 hoje mesmo.' },
 ];
 
@@ -452,7 +452,7 @@ function Hero() {
           style={{ fontSize: 'clamp(16.5px, 1.35vw, 18.5px)', lineHeight: 1.55 }}
         >
           Um app com 7 meditações guiadas que ensinam seu sistema nervoso a desacelerar.
-          Uma por noite, em sequência. Pagamento único de R$ 147 — sem mensalidade,
+          Uma por noite, em sequência. Pagamento único de R$ 147. Sem mensalidade,
           acesso vitalício.
         </p>
 
@@ -593,7 +593,7 @@ function PainMirror() {
         <p
           className="mx-auto mt-5 max-w-[620px] text-[16.5px] leading-[1.6] text-[#6b6b6b] sm:text-[18px]"
         >
-          Se resolve com outro tipo de descanso — um que a mente reconhece como{' '}
+          Se resolve com outro tipo de descanso. Um que a mente reconhece como{' '}
           <span className="font-semibold text-[#0a0a0a]">permissão pra desligar</span>.
         </p>
       </div>
@@ -610,7 +610,7 @@ function UniqueMechanism() {
     {
       kicker: '01',
       title: 'A voz da Arabella',
-      body: 'Guia a regulação do sistema nervoso autônomo — frase por frase, respiração por respiração.',
+      body: 'Guia a regulação do sistema nervoso autônomo, frase por frase, respiração por respiração.',
     },
     {
       kicker: '02',
@@ -620,7 +620,7 @@ function UniqueMechanism() {
     {
       kicker: '03',
       title: 'Estrutura sequencial',
-      body: 'Cada noite condiciona a próxima. Você não recomeça — você progride.',
+      body: 'Cada noite condiciona a próxima. Você não recomeça. Você progride.',
     },
   ];
 
@@ -665,23 +665,52 @@ function UniqueMechanism() {
 
         <div className="scroll-reveal stagger-2 mx-auto mt-16 grid max-w-[920px] gap-7 sm:mt-20 sm:grid-cols-2 sm:gap-9">
           <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-7 sm:p-9">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/40">
-              Calm · Headspace · etc.
-            </p>
-            <p className="mt-5 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.04] ring-1 ring-white/10"
+                aria-hidden
+              >
+                <img
+                  src="/images/brands/calm.png"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="h-9 w-9 object-contain opacity-80"
+                />
+              </div>
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
+                Calm · Headspace · etc.
+              </p>
+            </div>
+            <p className="mt-6 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
               Te dão uma <span className="font-semibold text-white">biblioteca infinita</span>.
               Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra mente
               que já está cansada de decidir.
             </p>
           </div>
           <div className="relative rounded-2xl border border-[#d4a24c]/40 bg-[#d4a24c]/[0.06] p-7 sm:p-9">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d4a24c]">
-              Protocolo Sono · 7 noites
-            </p>
-            <p className="mt-5 text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#d4a24c]/15 ring-1 ring-[#d4a24c]/40"
+                aria-hidden
+              >
+                <img
+                  src="/LogoFundoTransparente.webp"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="h-7 w-7 object-contain"
+                  style={{ filter: 'brightness(0) invert(1)' }}
+                />
+              </div>
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d4a24c]">
+                Protocolo Sono · 7 noites
+              </p>
+            </div>
+            <p className="mt-6 text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
               Te entrega uma <span className="font-semibold text-white">sequência</span>.
               Uma meditação por noite, na ordem certa, cada uma preparando a próxima.
-              Você não escolhe nada — só aperta play.
+              Você não escolhe nada. Só aperta play.
             </p>
           </div>
         </div>
@@ -981,8 +1010,8 @@ function SoundExperience() {
         </h2>
 
         <p className="mx-auto mt-7 max-w-[520px] text-[16px] leading-[1.55] text-[#6b6b6b] sm:text-[17px]">
-          A voz de Arabella guia. O som ancora. Você combina dentro do app —
-          nunca a mesma noite duas vezes.
+          A voz de Arabella guia. O som ancora. Você combina dentro do app.
+          Nunca a mesma noite duas vezes.
         </p>
       </div>
 
@@ -1268,7 +1297,7 @@ function Offer() {
       <div className="scroll-reveal reveal-scale mx-auto max-w-[640px]">
         <div className="offer-card overflow-hidden rounded-3xl bg-white px-6 pb-12 pt-12 sm:px-14 sm:pb-[56px] sm:pt-[56px]">
           <p className="text-center text-[12px] font-bold uppercase tracking-[0.1em] text-[#d4a24c]">
-            Protocolo Completo — 7 Noites
+            Protocolo Completo · 7 Noites
           </p>
 
           <h2
