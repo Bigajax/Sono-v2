@@ -665,24 +665,10 @@ function UniqueMechanism() {
 
         <div className="scroll-reveal stagger-2 mx-auto mt-16 grid max-w-[920px] gap-7 sm:mt-20 sm:grid-cols-2 sm:gap-9">
           <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-7 sm:p-9">
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.04] ring-1 ring-white/10"
-                aria-hidden
-              >
-                <img
-                  src="/images/brands/calm.png"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="h-9 w-9 object-contain opacity-80"
-                />
-              </div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
-                Calm · Headspace · etc.
-              </p>
-            </div>
-            <p className="mt-6 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/40">
+              Calm · Headspace · etc.
+            </p>
+            <p className="mt-5 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
               Te dão uma <span className="font-semibold text-white">biblioteca infinita</span>.
               Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra mente
               que já está cansada de decidir.
