@@ -115,7 +115,11 @@ const nightTimeline = [
 ];
 
 type FloatingIcon = {
-  Icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
+  Icon: React.ComponentType<{
+    className?: string;
+    strokeWidth?: number | string;
+    style?: React.CSSProperties;
+  }>;
   size: number;
   bg: string;
   position: React.CSSProperties;
@@ -172,16 +176,24 @@ const partnerCompanies = [
 ];
 
 const offerIncludes: { text: string; price: string | null }[] = [
-  { text: '7 áudios guiados (8 a 12 min cada) · narrados por Arabella', price: 'R$ 167' },
-  { text: '11 ambientes sonoros combináveis', price: 'R$ 67' },
-  { text: 'Meditação de emergência (3 min, para noites difíceis)', price: 'R$ 47' },
+  { text: 'Acesso ao app com 7 meditações guiadas (8 a 12 min cada) — narradas por Arabella', price: 'R$ 167' },
+  { text: '11 ambientes sonoros combináveis dentro do app', price: 'R$ 67' },
+  { text: 'Meditação de emergência (3 min, pra noites difíceis)', price: 'R$ 47' },
   { text: 'Acesso vitalício, sem renovação', price: 'R$ 119' },
-  { text: 'Garantia de 7 dias', price: null },
+  { text: 'Garantia incondicional de 7 dias', price: null },
 ];
 
 type FaqItem = { q: string; a: string };
 
 const faqItems: FaqItem[] = [
+  {
+    q: 'Já tentei Calm, Headspace, melatonina. Por que isso seria diferente?',
+    a: 'Esses produtos te dão ferramentas soltas. O app te dá uma sequência fechada. A diferença é que você não precisa decidir nada — é só abrir, apertar play, na ordem. A mente cansada não tem mais uma decisão pra tomar.',
+  },
+  {
+    q: 'Por que pagamento único e não assinatura mensal como os outros apps?',
+    a: 'Porque a meta é você não precisar mais do app. Assinatura cria dependência do produto. O protocolo termina em 7 noites — depois é seu, pra sempre, pra repetir quando precisar.',
+  },
   { q: 'Preciso saber meditar pra funcionar?', a: 'Não. O protocolo é áudio guiado. A voz conduz, o som ancora. Você só precisa estar deitado. Se a mente fugir, ela volta sozinha quando ouve a voz.' },
   { q: 'E se eu não conseguir dormir já na primeira noite?', a: 'O objetivo da Noite 1 não é te fazer dormir. É fazer seu corpo perceber que pode baixar a guarda. O sono vem como consequência — às vezes na N1, às vezes na N3. Por isso são 7 noites. Se não funcionar, você tem 7 dias de garantia.' },
   { q: 'Quanto tempo leva pra funcionar?', a: 'A maioria sente diferença na respiração e na tensão do peito ainda na primeira noite. O sono mais consistente costuma aparecer entre a N3 e a N5.' },
@@ -219,7 +231,7 @@ const testimonials: Testimonial[] = [
     initial: 'C',
     photo: '/images/people/caio.jpg',
     quote:
-      'Eu sempre ficava fazendo conta no relógio. Na terceira noite, percebi que tinha parado de calcular.',
+      'Eu calculava no relógio toda noite: "se eu dormir agora, durmo 4h". Na terceira noite percebi, no meio da madrugada, que tinha parado de fazer essa conta. Só notei de manhã.',
     age: 42,
     city: 'Belo Horizonte',
     status: 'na Noite 5',
@@ -229,7 +241,7 @@ const testimonials: Testimonial[] = [
     initial: 'F',
     photo: '/images/people/fernanda.jpg',
     quote:
-      'Não parece meditação. Parece que alguém guia o corpo a entender que o dia acabou. Meu peito foi soltando aos poucos.',
+      'Não parece meditação. Parece que alguém está explicando pro meu corpo que o dia acabou. Na quarta noite, comecei a dormir antes do áudio terminar.',
     age: 35,
     city: 'Curitiba',
     status: 'completou as 7 noites',
@@ -262,9 +274,12 @@ function useScrollReveal() {
 // CTAs
 // ============================================================
 
-function OutlineNightsLink() {
+function OutlineNightsLink({ responsiveFull = false }: { responsiveFull?: boolean }) {
   return (
-    <a href="#noites" className="btn-outline whitespace-nowrap">
+    <a
+      href="#noites"
+      className={`btn-outline whitespace-nowrap ${responsiveFull ? '!w-full sm:!w-auto' : ''}`}
+    >
       Ver as 7 noites
       <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />
     </a>
@@ -275,38 +290,32 @@ function PrimaryCheckoutCta({
   id,
   label = 'Quero dormir hoje · R$ 147',
   full = false,
+  responsiveFull = false,
   size,
 }: {
   id?: string;
   label?: string;
   full?: boolean;
+  responsiveFull?: boolean;
   size?: 'lg';
 }) {
   const { loading, openCheckout } = useCheckout();
   const lgStyle = size === 'lg' ? { padding: '18px', fontSize: '17px' } : undefined;
+  const widthClass = full
+    ? '!w-full'
+    : responsiveFull
+      ? '!w-full sm:!w-auto'
+      : '';
   return (
     <button
       id={id}
       onClick={openCheckout}
       disabled={loading}
-      className={`btn-primary whitespace-nowrap ${full ? '!w-full' : ''}`}
+      className={`btn-primary whitespace-nowrap ${widthClass}`}
       style={lgStyle}
     >
       {loading ? 'Abrindo checkout…' : label}
       {!loading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
-    </button>
-  );
-}
-
-function OutlineCheckoutCta({ label }: { label: string }) {
-  const { loading, openCheckout } = useCheckout();
-  return (
-    <button
-      onClick={openCheckout}
-      disabled={loading}
-      className="btn-outline"
-    >
-      {loading ? 'Abrindo…' : label}
     </button>
   );
 }
@@ -415,46 +424,80 @@ function AppIcon() {
 
 function Hero() {
   return (
-    <section id="topo" className="relative px-5 pb-20 pt-28 sm:px-8 sm:pb-32 sm:pt-[150px]">
+    <section id="topo" className="relative px-5 pb-20 pt-28 sm:px-8 sm:pb-28 sm:pt-[150px]">
       <div className="mx-auto max-w-5xl text-center">
         <div className="reveal-soft flex justify-center">
           <AppIcon />
         </div>
 
         <h1
-          className="reveal-soft animation-delay-100 h-display mx-auto mt-14 max-w-[900px] sm:mt-16"
+          className="reveal-soft animation-delay-100 h-display mx-auto mt-14 max-w-[980px] sm:mt-16"
           style={{
-            fontSize: 'clamp(36px, 6.5vw, 84px)',
-            lineHeight: 1.0,
+            fontSize: 'clamp(34px, 6.2vw, 80px)',
+            lineHeight: 1.02,
             letterSpacing: '-0.035em',
           }}
         >
-          <span className="whitespace-nowrap">Você está cansado.</span>
+          Você desliga a luz às 23h.
           <br />
-          <span className="whitespace-nowrap">Sua mente não.</span>
+          <span className="text-[#6b6b6b]">
+            Sua mente continua trabalhando
+            <br className="hidden sm:block" />
+            {' '}até as 4h.
+          </span>
         </h1>
 
         <p
           className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[640px] text-[#6b6b6b]"
-          style={{ fontSize: 'clamp(17px, 1.4vw, 19px)', lineHeight: 1.55 }}
+          style={{ fontSize: 'clamp(16.5px, 1.35vw, 18.5px)', lineHeight: 1.55 }}
         >
-          Em sete noites, a mente aprende a soltar. Pagamento único. Acesso vitalício.
+          Um app com 7 meditações guiadas que ensinam seu sistema nervoso a desacelerar.
+          Uma por noite, em sequência. Pagamento único de R$ 147 — sem mensalidade,
+          acesso vitalício.
         </p>
 
-        <div className="reveal-soft animation-delay-300 mt-12 flex flex-row items-center justify-center gap-2.5 sm:gap-3">
-          <PrimaryCheckoutCta id="hero-cta" label="Quero por R$ 147" />
-          <OutlineNightsLink />
+        <div className="reveal-soft animation-delay-300 mx-auto mt-11 flex w-full max-w-[420px] flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
+          <PrimaryCheckoutCta id="hero-cta" label="Quero dormir hoje · R$ 147" responsiveFull />
+          <OutlineNightsLink responsiveFull />
         </div>
 
-        <p className="reveal-soft animation-delay-400 mt-5 text-[13px] font-medium text-[#d4a24c]">
-          Garantia de 7 dias · Comece hoje, antes da luz apagar
+        <p className="reveal-soft animation-delay-400 mx-auto mt-5 max-w-[480px] text-[13px] leading-[1.55] text-[#6b6b6b]">
+          <span className="font-bold text-[#d4a24c]">Garantia de 7 dias.</span>{' '}
+          Se não funcionar, devolvemos 100%. Sem formulário.
         </p>
+      </div>
+    </section>
+  );
+}
 
-        <div className="reveal-soft animation-delay-500 mt-12 sm:mt-40">
-          <p className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-[#a8a8a3] sm:text-[10.5px]">
-            Entre nossos usuários, profissionais de
+// ============================================================
+// 1B · WHO USES IT
+// ============================================================
+
+function WhoUsesIt() {
+  return (
+    <section className="relative bg-white px-5 py-20 sm:px-8 sm:py-[110px]">
+      <div className="mx-auto max-w-[920px]">
+        <div className="scroll-reveal mx-auto max-w-[680px] text-center">
+          <p className="eyebrow mb-7">Quem dorme assim</p>
+          <h2
+            className="h-section mx-auto"
+            style={{ fontSize: 'clamp(26px, 3.6vw, 42px)' }}
+          >
+            Pessoas que dormem assim
+            <br className="sm:hidden" />
+            {' '}usam o app.
+          </h2>
+          <p className="mx-auto mt-7 max-w-[560px] text-[16.5px] leading-[1.6] text-[#6b6b6b] sm:text-[17.5px]">
+            Profissionais de tecnologia, finanças e mídia. Gente que passa o dia
+            tomando decisão e descobre, às{' '}
+            <span className="font-semibold text-[#0a0a0a]">2h da manhã</span>, que o
+            cérebro não tem botão de <span className="italic">off</span>.
           </p>
-          <div className="mx-auto mt-8 flex max-w-[1080px] flex-wrap items-center justify-center gap-x-7 gap-y-6 sm:mt-10 sm:gap-x-14 lg:gap-x-16">
+        </div>
+
+        <div className="scroll-reveal stagger-2 mx-auto mt-14 sm:mt-16">
+          <div className="mx-auto flex max-w-[920px] flex-wrap items-center justify-center gap-x-9 gap-y-7 sm:gap-x-16 lg:gap-x-20">
             {partnerCompanies.map(({ name, logo, height }, i) => (
               <img
                 key={name}
@@ -464,7 +507,7 @@ function Hero() {
                 decoding="async"
                 className={`brand-logo w-auto scroll-reveal stagger-${(i % 6) + 1}`}
                 style={{
-                  height: `${Math.round(height * 0.88)}px`,
+                  height: `${Math.round(height * 0.92)}px`,
                   maxHeight: `${height}px`,
                 }}
               />
@@ -483,17 +526,22 @@ function Hero() {
 function PainMirror() {
   return (
     <section className="bg-[#fafaf7] px-5 py-20 sm:px-8 sm:py-[120px]">
-      <div className="scroll-reveal mx-auto max-w-[720px] text-center">
-        <p className="eyebrow mb-7">Se você dorme assim</p>
+      <div className="scroll-reveal mx-auto max-w-[760px] text-center">
+        <p className="eyebrow mb-7">O diagnóstico errado</p>
         <h2
           className="h-section mx-auto"
-          style={{ fontSize: 'clamp(28px, 4.5vw, 56px)' }}
+          style={{ fontSize: 'clamp(26px, 4.5vw, 56px)' }}
         >
-          <span className="whitespace-nowrap">Você não tem insônia.</span>
-          <br />
-          Tem uma mente
+          Você não tem
           <br className="sm:hidden" />
-          {' '}que não desliga.
+          {' '}insônia clínica.
+          <br className="hidden sm:block" />
+          {' '}
+          <span className="text-[#6b6b6b]">
+            Você tem uma mente
+            <br className="sm:hidden" />
+            {' '}treinada pra não parar.
+          </span>
         </h2>
       </div>
 
@@ -533,21 +581,168 @@ function PainMirror() {
         </div>
       </div>
 
-      <div className="scroll-reveal mx-auto mt-20 max-w-[720px] text-center">
+      <div className="scroll-reveal mx-auto mt-20 max-w-[760px] text-center">
         <p
           className="h-section"
-          style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+          style={{ fontSize: 'clamp(24px, 3.6vw, 40px)' }}
         >
-          Você não precisa
+          Isso não se resolve
           <br className="sm:hidden" />
-          {' '}de mais sono.
+          {' '}com mais sono.
         </p>
         <p
-          className="h-section mt-1 text-[#6b6b6b]"
-          style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+          className="mx-auto mt-5 max-w-[620px] text-[16.5px] leading-[1.6] text-[#6b6b6b] sm:text-[18px]"
         >
-          Precisa parar de lutar pelo sono.
+          Se resolve com outro tipo de descanso — um que a mente reconhece como{' '}
+          <span className="font-semibold text-[#0a0a0a]">permissão pra desligar</span>.
         </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 2B · UNIQUE MECHANISM
+// ============================================================
+
+function UniqueMechanism() {
+  const layers = [
+    {
+      kicker: '01',
+      title: 'A voz da Arabella',
+      body: 'Guia a regulação do sistema nervoso autônomo — frase por frase, respiração por respiração.',
+    },
+    {
+      kicker: '02',
+      title: '11 ambientes sonoros',
+      body: 'Combináveis dentro do app. Mascaram a ruminação e ancoram a atenção fora da cabeça.',
+    },
+    {
+      kicker: '03',
+      title: 'Estrutura sequencial',
+      body: 'Cada noite condiciona a próxima. Você não recomeça — você progride.',
+    },
+  ];
+
+  return (
+    <section className="relative overflow-hidden bg-[#0a0a0a] px-5 py-20 text-white sm:px-8 sm:py-[140px]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 0%, rgba(212,162,76,0.45) 0%, transparent 70%), radial-gradient(40% 40% at 80% 100%, rgba(150,100,200,0.22) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1080px]">
+        <div className="scroll-reveal mx-auto max-w-[760px] text-center">
+          <p
+            className="mb-7 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a24c]"
+          >
+            <span className="h-[1px] w-6 bg-[#d4a24c]/60" aria-hidden />
+            O mecanismo único
+            <span className="h-[1px] w-6 bg-[#d4a24c]/60" aria-hidden />
+          </p>
+
+          <h2
+            className="h-display mx-auto text-white"
+            style={{
+              fontSize: 'clamp(28px, 5vw, 60px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.035em',
+            }}
+          >
+            Por que um app de 7 noites
+            <br />
+            <span className="text-white/55">
+              e não mais
+              <br className="sm:hidden" />
+              {' '}um Calm?
+            </span>
+          </h2>
+        </div>
+
+        <div className="scroll-reveal stagger-2 mx-auto mt-16 grid max-w-[920px] gap-7 sm:mt-20 sm:grid-cols-2 sm:gap-9">
+          <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-7 sm:p-9">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/40">
+              Calm · Headspace · etc.
+            </p>
+            <p className="mt-5 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
+              Te dão uma <span className="font-semibold text-white">biblioteca infinita</span>.
+              Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra mente
+              que já está cansada de decidir.
+            </p>
+          </div>
+          <div className="relative rounded-2xl border border-[#d4a24c]/40 bg-[#d4a24c]/[0.06] p-7 sm:p-9">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d4a24c]">
+              Protocolo Sono · 7 noites
+            </p>
+            <p className="mt-5 text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
+              Te entrega uma <span className="font-semibold text-white">sequência</span>.
+              Uma meditação por noite, na ordem certa, cada uma preparando a próxima.
+              Você não escolhe nada — só aperta play.
+            </p>
+          </div>
+        </div>
+
+        <div className="scroll-reveal stagger-3 mx-auto mt-16 max-w-[760px] text-center sm:mt-20">
+          <p className="text-[14.5px] font-medium uppercase tracking-[0.16em] text-white/45 sm:text-[15px]">
+            Três camadas, uma combinação
+          </p>
+          <p
+            className="mx-auto mt-5 max-w-[640px] text-[17px] leading-[1.55] text-white/75 sm:text-[19px]"
+          >
+            Cada meditação combina três camadas que trabalham simultâneas:
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-[1px] overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:mt-14 sm:grid-cols-3">
+          {layers.map((layer, i) => (
+            <div
+              key={layer.kicker}
+              className={`scroll-reveal stagger-${i + 1} flex flex-col gap-4 bg-[#0a0a0a] p-7 sm:p-9`}
+            >
+              <p
+                className="font-black leading-none tracking-[-0.04em] text-[#d4a24c]"
+                style={{ fontSize: 'clamp(36px, 4vw, 48px)', fontVariantNumeric: 'tabular-nums' }}
+              >
+                {layer.kicker}
+              </p>
+              <h3 className="text-[20px] font-bold leading-tight tracking-[-0.015em] text-white sm:text-[22px]">
+                {layer.title}
+              </h3>
+              <p className="text-[15px] leading-[1.55] text-white/65 sm:text-[15.5px]">
+                {layer.body}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="scroll-reveal stagger-5 mx-auto mt-16 max-w-[720px] text-center sm:mt-24">
+          <p
+            className="h-display mx-auto text-white"
+            style={{
+              fontSize: 'clamp(22px, 3.4vw, 38px)',
+              lineHeight: 1.15,
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Na sétima noite,
+            <br className="sm:hidden" />
+            {' '}o reflexo
+            <br className="hidden sm:block" />
+            {' '}já está instalado.
+            <br />
+            <span className="text-[#d4a24c]">
+              Você pode parar
+              <br className="sm:hidden" />
+              {' '}de abrir o app.
+            </span>
+            <br />
+            <span className="text-white/65">O sono fica.</span>
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -785,8 +980,9 @@ function SoundExperience() {
           Sua mente escolhe.
         </h2>
 
-        <p className="mx-auto mt-7 max-w-[480px] text-[16px] leading-[1.55] text-[#6b6b6b] sm:text-[17px]">
-          A voz de Arabella guia. O som te ancora.
+        <p className="mx-auto mt-7 max-w-[520px] text-[16px] leading-[1.55] text-[#6b6b6b] sm:text-[17px]">
+          A voz de Arabella guia. O som ancora. Você combina dentro do app —
+          nunca a mesma noite duas vezes.
         </p>
       </div>
 
@@ -832,7 +1028,8 @@ function NightsGrid() {
           </span>
         </h2>
         <p className="mt-7 max-w-xl text-[17px] leading-[1.6] text-[#6b6b6b]">
-          Você não recomeça toda noite. Você continua.
+          Você abre o app, escolhe o ambiente sonoro da noite, aperta play.
+          Oito a doze minutos depois, o corpo já está em outro lugar.
         </p>
 
         <div className="scroll-reveal reveal-scale lift-card mt-12 overflow-hidden rounded-2xl border border-[#e5e5e2] bg-white">
@@ -1088,7 +1285,8 @@ function Offer() {
           </h2>
 
           <p className="mx-auto mt-7 max-w-lg text-center text-[16px] leading-[1.6] text-[#6b6b6b] sm:text-[17px]">
-            Em sete noites, seu corpo aprende a encontrar o sono sem ajuda. O protocolo sai. A capacidade fica.
+            Em sete noites, seu corpo aprende a encontrar o sono sem ajuda. Você
+            desinstala o app se quiser. A capacidade fica.
           </p>
           <p className="mx-auto mt-2.5 max-w-lg text-center text-[13px] font-medium text-[#999]">
             Pagamento único. Sem renovação. Acesso vitalício.
@@ -1126,7 +1324,7 @@ function Offer() {
               R$ 147
             </p>
             <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#999]">
-              Hoje · Pagamento único · 7 noites completas
+              Hoje · Pagamento único · Acesso vitalício
             </p>
           </div>
 
@@ -1250,7 +1448,7 @@ function FinalCta() {
           className="scroll-reveal stagger-1 mx-auto mt-8 max-w-xl text-[#6b6b6b]"
           style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', lineHeight: 1.55 }}
         >
-          Você deita. Aperta play. Oito minutos depois, o corpo já está em outro lugar.
+          Você abre o app. Aperta play. Oito minutos depois, o corpo já está em outro lugar.
         </p>
 
         <div className="scroll-reveal stagger-2 mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -1309,7 +1507,7 @@ function StickyCheckoutBar() {
         <div className="mb-2 flex items-center justify-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d4a24c]" aria-hidden />
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6b6b6b]">
-            Protocolo completo · 7 noites · garantia
+            7 noites · garantia · acesso vitalício
           </p>
         </div>
         <button
@@ -1319,7 +1517,7 @@ function StickyCheckoutBar() {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a0a0a] py-[15px] text-[15.5px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#1a1a1a] active:bg-[#1a1a1a] disabled:opacity-60"
           style={{ boxShadow: '0 8px 20px rgba(10,10,10,0.18)' }}
         >
-          <span>{loading ? 'Abrindo checkout…' : 'Quero por R$ 147'}</span>
+          <span>{loading ? 'Abrindo checkout…' : 'Quero dormir hoje · R$ 147'}</span>
           {!loading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.25} />}
         </button>
       </div>
@@ -1362,7 +1560,9 @@ function App() {
         <Nav />
 
         <Hero />
+        <WhoUsesIt />
         <PainMirror />
+        <UniqueMechanism />
         <Mechanism />
         <NightsGrid />
         <SoundExperience />
