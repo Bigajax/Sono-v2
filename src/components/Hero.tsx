@@ -1,7 +1,7 @@
 import { useCheckout } from '../hooks/useCheckout';
 
 function Hero() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
 
   return (
     <section
@@ -56,6 +56,8 @@ function Hero() {
       <button
         id="hero-cta"
         onClick={openCheckout}
+        onMouseEnter={prewarm}
+        onFocus={prewarm}
         disabled={loading}
         className="mt-10 px-12 py-5 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] animate-fade-up-5 btn-pulse disabled:cursor-not-allowed disabled:opacity-70"
         style={{
@@ -63,16 +65,12 @@ function Hero() {
           background: 'linear-gradient(135deg, #7B5FD4 0%, #5A3DB0 100%)',
         }}
       >
-        {loading ? 'Abrindo…' : 'Quero dormir melhor hoje — R$37 →'}
+        {loading ? 'Abrindo…' : 'Começar esta noite →'}
       </button>
 
       {/* Microcopy */}
       <p className="mt-4 animate-fade-up-6" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.26)' }}>
         Você não precisa acreditar. Só precisa testar hoje.
-      </p>
-
-      <p className="mt-2 animate-fade-up-6" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-        Pagamento único · Acesso imediato · Sem mensalidade
       </p>
     </section>
   );

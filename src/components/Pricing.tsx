@@ -1,7 +1,7 @@
 import { useCheckout } from '../hooks/useCheckout';
 
 function Pricing() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
 
   return (
     <section className="py-28 px-6 text-center" style={{ background: '#0C0D1A' }} id="preco">
@@ -70,18 +70,23 @@ function Pricing() {
                 'Bônus: SOS – Não Consigo Dormir Hoje',
                 'Acesso imediato no celular',
                 'Sem instalar nada',
-              ].map((item, i) => (
-                <div key={i} className="flex gap-3" style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.58)' }}>
-                  <span style={{ color: '#9D97CC', flexShrink: 0, fontSize: '10px', paddingTop: '4px' }}>—</span>
-                  {item}
-                </div>
-              ))}
+              ].map((item, i) => {
+                const isBonus = item.startsWith('Bônus');
+                return (
+                  <div key={i} className="flex gap-3" style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.58)' }}>
+                    <span style={{ color: isBonus ? '#C4913C' : '#9D97CC', flexShrink: 0, fontSize: '10px', paddingTop: '4px' }}>—</span>
+                    {item}
+                  </div>
+                );
+              })}
             </div>
 
             <button
               onClick={openCheckout}
+              onMouseEnter={prewarm}
+              onFocus={prewarm}
               disabled={loading}
-              className="w-full py-4 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] disabled:opacity-60 disabled:cursor-not-allowed btn-pulse"
+              className="w-full py-4 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 fontSize: '15px',
                 background: 'linear-gradient(135deg, #7B5FD4 0%, #5A3DB0 100%)',

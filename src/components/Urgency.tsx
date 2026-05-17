@@ -25,7 +25,7 @@ function useCountdown() {
 }
 
 function Urgency() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
   const time = useCountdown();
 
   return (
@@ -81,8 +81,10 @@ function Urgency() {
 
         <button
           onClick={openCheckout}
+          onMouseEnter={prewarm}
+          onFocus={prewarm}
           disabled={loading}
-          className="px-12 py-5 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] btn-pulse disabled:opacity-60 disabled:cursor-not-allowed"
+          className="px-12 py-5 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
             fontSize: '15px',
             background: 'linear-gradient(135deg, #7B5FD4 0%, #5A3DB0 100%)',

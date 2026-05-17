@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { trackPixel } from '../lib/tracking';
+import { getApiBaseUrl, warmupBackend } from '../lib/warmup';
 
 const PRODUCT_KEY = 'protocolo_sono_7_noites';
 const PRODUCT_PRICE = 147;
@@ -22,15 +23,7 @@ export function useCheckout() {
     setLoading(true);
 
     try {
-      // Em produção sempre bate no backend Render. Em dev local (npm run dev no host),
-      // VITE_API_URL='' usa o proxy do Vite. Hostname localhost = dev → proxy.
-      const isLocalDev =
-        typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      const apiUrl = isLocalDev
-        ? (import.meta.env.VITE_API_URL ?? '')
-        : (import.meta.env.VITE_API_URL || 'https://ecobackend888.onrender.com');
-
+      const apiUrl = getApiBaseUrl();
       const utm = getUtmParams();
 
       const res = await fetch(`${apiUrl}/api/mp/create-preference`, {
@@ -65,5 +58,10 @@ export function useCheckout() {
     }
   };
 
-  return { loading, openCheckout };
+  // Para usar em onMouseEnter/onFocus dos botões — acorda o backend antes do clique
+  const prewarm = () => {
+    void warmupBackend();
+  };
+
+  return { loading, openCheckout, prewarm };
 }

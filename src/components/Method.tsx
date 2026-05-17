@@ -101,7 +101,7 @@ function BonusScreen() {
 }
 
 function Method() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
 
   return (
     <section className="py-24 text-center overflow-hidden bg-cream">
@@ -172,18 +172,18 @@ function Method() {
             scrollSnapAlign: 'start',
             flexShrink: 0,
             width: '178px',
-            background: 'rgba(107,79,187,0.03)',
+            background: 'rgba(196,145,60,0.04)',
             borderRadius: '14px',
-            border: '1px solid rgba(107,79,187,0.15)',
+            border: '1px solid rgba(196,145,60,0.22)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 2px 12px rgba(107,79,187,0.06)',
+            boxShadow: '0 2px 14px rgba(196,145,60,0.08)',
           }}
         >
           <BonusScreen />
           <div style={{ padding: '11px 13px 15px', textAlign: 'left', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <p style={{ color: 'rgba(107,79,187,0.45)', fontSize: '8.5px', fontWeight: 400, letterSpacing: '1.2px', textTransform: 'uppercase', margin: 0 }}>Bônus</p>
+            <p style={{ color: 'rgba(196,145,60,0.75)', fontSize: '8.5px', fontWeight: 500, letterSpacing: '1.4px', textTransform: 'uppercase', margin: 0 }}>Bônus</p>
             <p style={{ fontSize: '12.5px', fontWeight: 500, color: '#12121E', margin: 0, lineHeight: 1.3 }}>SOS – Não Consigo Dormir Hoje</p>
             <p style={{ fontSize: '11px', color: 'rgba(18,18,30,0.4)', margin: 0, lineHeight: 1.45, fontWeight: 300, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>Para quando nada está funcionando e o teto parece longe demais.</p>
           </div>
@@ -196,8 +196,10 @@ function Method() {
       <div className="mt-4 px-6">
         <button
           onClick={openCheckout}
+          onMouseEnter={prewarm}
+          onFocus={prewarm}
           disabled={loading}
-          className="px-10 py-4 bg-accent text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_36px_rgba(107,79,187,0.35)] btn-pulse disabled:opacity-70 disabled:cursor-not-allowed"
+          className="px-10 py-4 bg-accent text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_36px_rgba(107,79,187,0.35)] disabled:opacity-70 disabled:cursor-not-allowed"
           style={{ fontSize: '14px' }}
         >
           {loading ? 'Abrindo…' : 'Quero acesso imediato — R$37 →'}

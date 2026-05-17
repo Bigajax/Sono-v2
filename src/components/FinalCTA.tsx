@@ -1,7 +1,7 @@
 import { useCheckout } from '../hooks/useCheckout';
 
 function FinalCTA() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
 
   return (
     <section className="py-28 px-6 text-center" style={{ background: '#08090F' }}>
@@ -49,6 +49,8 @@ function FinalCTA() {
 
           <button
             onClick={openCheckout}
+            onMouseEnter={prewarm}
+            onFocus={prewarm}
             disabled={loading}
             className="mt-2 px-12 py-5 text-white font-medium tracking-wide rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(107,79,187,0.6)] animate-fade-up-4 btn-pulse w-full max-w-[400px] disabled:opacity-60 disabled:cursor-not-allowed"
             style={{

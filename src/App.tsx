@@ -15,6 +15,7 @@ import {
   Wind,
 } from 'lucide-react';
 import { useCheckout } from './hooks/useCheckout';
+import { warmupBackend } from './lib/warmup';
 
 const MARKETING_STORAGE_KEY = 'sono_mkt_ctx';
 
@@ -299,7 +300,7 @@ function PrimaryCheckoutCta({
   responsiveFull?: boolean;
   size?: 'lg';
 }) {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
   const lgStyle = size === 'lg' ? { padding: '18px', fontSize: '17px' } : undefined;
   const widthClass = full
     ? '!w-full'
@@ -310,6 +311,8 @@ function PrimaryCheckoutCta({
     <button
       id={id}
       onClick={openCheckout}
+      onMouseEnter={prewarm}
+      onFocus={prewarm}
       disabled={loading}
       className={`btn-primary whitespace-nowrap ${widthClass}`}
       style={lgStyle}
@@ -325,7 +328,7 @@ function PrimaryCheckoutCta({
 // ============================================================
 
 function Nav() {
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
   return (
     <nav className="fixed left-1/2 top-5 z-50 w-[min(640px,calc(100%-24px))] -translate-x-1/2 sm:top-6">
       <div className="nav-pill flex items-center justify-between rounded-full px-5 py-3 sm:px-7 sm:py-3.5">
@@ -351,6 +354,8 @@ function Nav() {
         <button
           type="button"
           onClick={openCheckout}
+          onMouseEnter={prewarm}
+          onFocus={prewarm}
           disabled={loading}
           className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] disabled:opacity-60 sm:px-5 sm:py-2.5 sm:text-[14px]"
         >
@@ -646,16 +651,17 @@ function UniqueMechanism() {
           </p>
 
           <h2
-            className="h-display mx-auto text-white"
+            className="h-display mx-auto"
             style={{
               fontSize: 'clamp(28px, 5vw, 60px)',
               lineHeight: 1.05,
               letterSpacing: '-0.035em',
+              color: '#ffffff',
             }}
           >
             Por que um app de 7 noites
             <br />
-            <span className="text-white/55">
+            <span style={{ color: 'rgba(255,255,255,0.78)' }}>
               e não mais
               <br className="sm:hidden" />
               {' '}um Calm?
@@ -736,11 +742,12 @@ function UniqueMechanism() {
 
         <div className="scroll-reveal stagger-5 mx-auto mt-16 max-w-[720px] text-center sm:mt-24">
           <p
-            className="h-display mx-auto text-white"
+            className="h-display mx-auto"
             style={{
               fontSize: 'clamp(22px, 3.4vw, 38px)',
               lineHeight: 1.15,
               letterSpacing: '-0.025em',
+              color: '#ffffff',
             }}
           >
             Na sétima noite,
@@ -749,13 +756,13 @@ function UniqueMechanism() {
             <br className="hidden sm:block" />
             {' '}já está instalado.
             <br />
-            <span className="text-[#d4a24c]">
+            <span style={{ color: '#d4a24c' }}>
               Você pode parar
               <br className="sm:hidden" />
               {' '}de abrir o app.
             </span>
             <br />
-            <span className="text-white/65">O sono fica.</span>
+            <span style={{ color: 'rgba(255,255,255,0.65)' }}>O sono fica.</span>
           </p>
         </div>
       </div>
@@ -1484,7 +1491,7 @@ function FinalCta() {
 
 function StickyCheckoutBar() {
   const [visible, setVisible] = useState(false);
-  const { loading, openCheckout } = useCheckout();
+  const { loading, openCheckout, prewarm } = useCheckout();
 
   useEffect(() => {
     const heroCta = document.getElementById('hero-cta');
@@ -1528,6 +1535,8 @@ function StickyCheckoutBar() {
         <button
           type="button"
           onClick={openCheckout}
+          onMouseEnter={prewarm}
+          onFocus={prewarm}
           disabled={loading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a0a0a] py-[15px] text-[15.5px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#1a1a1a] active:bg-[#1a1a1a] disabled:opacity-60"
           style={{ boxShadow: '0 8px 20px rgba(10,10,10,0.18)' }}
@@ -1553,6 +1562,9 @@ function App() {
   useEffect(() => {
     // Persiste UTMs no sessionStorage logo no primeiro render (first-touch attribution)
     getMarketingContext();
+    // Acorda o backend Render (free tier dorme após ~15min) para evitar
+    // espera de 30-50s na primeira chamada de checkout
+    warmupBackend();
   }, []);
 
   useEffect(() => {
