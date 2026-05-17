@@ -613,158 +613,231 @@ function PainMirror() {
 function UniqueMechanism() {
   const layers = [
     {
-      kicker: '01',
+      numeral: 'i',
       title: 'A voz da Arabella',
-      body: 'Guia a regulação do sistema nervoso autônomo, frase por frase, respiração por respiração.',
+      body: 'Guia a regulação do sistema nervoso autônomo — frase por frase, respiração por respiração.',
     },
     {
-      kicker: '02',
+      numeral: 'ii',
       title: '11 ambientes sonoros',
       body: 'Combináveis dentro do app. Mascaram a ruminação e ancoram a atenção fora da cabeça.',
     },
     {
-      kicker: '03',
+      numeral: 'iii',
       title: 'Estrutura sequencial',
       body: 'Cada noite condiciona a próxima. Você não recomeça. Você progride.',
     },
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#0a0a0a] px-5 py-20 text-white sm:px-8 sm:py-[140px]">
+    <section className="relative overflow-hidden bg-[#0a0a0a] px-5 py-24 text-white sm:px-8 sm:py-[140px]">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
         style={{
           background:
-            'radial-gradient(60% 50% at 50% 0%, rgba(212,162,76,0.45) 0%, transparent 70%), radial-gradient(40% 40% at 80% 100%, rgba(150,100,200,0.22) 0%, transparent 70%)',
+            'radial-gradient(55% 45% at 50% 0%, rgba(212,162,76,0.4) 0%, transparent 70%), radial-gradient(45% 40% at 85% 100%, rgba(150,100,200,0.18) 0%, transparent 70%)',
         }}
       />
 
-      <div className="relative mx-auto max-w-[1080px]">
-        <div className="scroll-reveal mx-auto max-w-[760px] text-center">
-          <p
-            className="mb-7 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a24c]"
-          >
-            <span className="h-[1px] w-6 bg-[#d4a24c]/60" aria-hidden />
+      <div className="relative mx-auto max-w-[960px]">
+
+        {/* Header */}
+        <div className="scroll-reveal text-center">
+          <p className="mb-9 inline-flex items-center gap-3 text-[10.5px] uppercase tracking-[0.32em] font-medium" style={{ color: 'rgba(212,162,76,0.85)' }}>
+            <span className="h-px w-7" style={{ background: 'rgba(212,162,76,0.45)' }} aria-hidden />
             O mecanismo único
-            <span className="h-[1px] w-6 bg-[#d4a24c]/60" aria-hidden />
+            <span className="h-px w-7" style={{ background: 'rgba(212,162,76,0.45)' }} aria-hidden />
           </p>
 
           <h2
-            className="h-display mx-auto"
-            style={{
-              fontSize: 'clamp(28px, 5vw, 60px)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.035em',
-              color: '#ffffff',
-            }}
+            className="font-serif font-light leading-[1.04] tracking-tight mx-auto"
+            style={{ fontSize: 'clamp(38px, 6.8vw, 72px)', color: '#ffffff' }}
           >
-            Por que um app de 7 noites
-            <br />
-            <span style={{ color: 'rgba(255,255,255,0.78)' }}>
-              e não mais
-              <br className="sm:hidden" />
-              {' '}um Calm?
-            </span>
+            Sete noites.<br />
+            <em className="italic" style={{ color: '#d4a24c' }}>Não mais um Calm.</em>
           </h2>
+
+          <p
+            className="mx-auto mt-8 max-w-[480px] font-serif font-light italic"
+            style={{ fontSize: 'clamp(15px, 1.6vw, 18px)', color: 'rgba(255,255,255,0.48)', lineHeight: 1.7 }}
+          >
+            A diferença não está no que tem dentro do app.<br className="hidden sm:block" />
+            {' '}Está no que ele <em className="not-italic" style={{ color: 'rgba(255,255,255,0.8)' }}>não pede</em> de você.
+          </p>
         </div>
 
-        <div className="scroll-reveal stagger-2 mx-auto mt-16 grid max-w-[920px] gap-7 sm:mt-20 sm:grid-cols-2 sm:gap-9">
-          <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-7 sm:p-9">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/40">
-              Calm · Headspace · etc.
-            </p>
-            <p className="mt-5 text-[17px] leading-[1.55] text-white/75 sm:text-[18px]">
-              Te dão uma <span className="font-semibold text-white">biblioteca infinita</span>.
-              Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra mente
-              que já está cansada de decidir.
-            </p>
-          </div>
-          <div className="relative rounded-2xl border border-[#d4a24c]/40 bg-[#d4a24c]/[0.06] p-7 sm:p-9">
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#d4a24c]/15 ring-1 ring-[#d4a24c]/40"
-                aria-hidden
-              >
-                <img
-                  src="/LogoFundoTransparente.webp"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="h-7 w-7 object-contain"
-                  style={{ filter: 'brightness(0) invert(1)' }}
-                />
-              </div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d4a24c]">
+        {/* Editorial comparison — no chrome, hairline divider */}
+        <div className="scroll-reveal stagger-2 mt-24 sm:mt-28">
+          <div className="hidden sm:grid sm:grid-cols-[1fr_auto_1fr] gap-x-14 items-stretch">
+
+            <div className="text-right pr-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] mb-6 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                Calm · Headspace · etc.
+              </p>
+              <p className="font-serif font-light" style={{ fontSize: 'clamp(18px, 2.05vw, 24px)', color: 'rgba(255,255,255,0.5)', lineHeight: 1.45 }}>
+                Eles te dão uma <em className="italic">biblioteca</em>.
+              </p>
+              <p className="mt-4" style={{ fontSize: '15px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
+                Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra uma mente que já está cansada de decidir.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center self-stretch w-px relative">
+              <div className="flex-1 w-px" style={{ background: 'linear-gradient(to bottom, transparent, rgba(212,162,76,0.5))' }} />
+              <p className="my-4 font-serif italic" style={{ fontSize: '13px', color: 'rgba(212,162,76,0.78)' }}>vs</p>
+              <div className="flex-1 w-px" style={{ background: 'linear-gradient(to bottom, rgba(212,162,76,0.5), transparent)' }} />
+            </div>
+
+            <div className="text-left pl-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] mb-6 font-medium" style={{ color: '#d4a24c' }}>
                 Protocolo Sono · 7 noites
               </p>
+              <p className="font-serif font-light" style={{ fontSize: 'clamp(18px, 2.05vw, 24px)', color: 'rgba(255,255,255,0.94)', lineHeight: 1.45 }}>
+                Aqui você recebe uma <em className="italic" style={{ color: '#d4a24c' }}>sequência</em>.
+              </p>
+              <p className="mt-4" style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.7 }}>
+                Uma meditação por noite, na ordem certa. Cada uma prepara a próxima. Você não escolhe nada. Só aperta play.
+              </p>
             </div>
-            <p className="mt-6 text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
-              Te entrega uma <span className="font-semibold text-white">sequência</span>.
-              Uma meditação por noite, na ordem certa, cada uma preparando a próxima.
-              Você não escolhe nada. Só aperta play.
+          </div>
+
+          <div className="sm:hidden flex flex-col gap-12">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] mb-5 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                Calm · Headspace · etc.
+              </p>
+              <p className="font-serif font-light mb-3" style={{ fontSize: '22px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                Eles te dão uma <em className="italic">biblioteca</em>.
+              </p>
+              <p style={{ fontSize: '14.5px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7 }}>
+                Você abre, escolhe, desiste, volta amanhã. Vira mais uma decisão pra uma mente cansada de decidir.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(212,162,76,0.45))' }} />
+              <p className="font-serif italic" style={{ fontSize: '13px', color: 'rgba(212,162,76,0.78)' }}>vs</p>
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, rgba(212,162,76,0.45))' }} />
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] mb-5 font-medium" style={{ color: '#d4a24c' }}>
+                Protocolo Sono · 7 noites
+              </p>
+              <p className="font-serif font-light mb-3" style={{ fontSize: '22px', color: 'rgba(255,255,255,0.94)', lineHeight: 1.4 }}>
+                Aqui você recebe uma <em className="italic" style={{ color: '#d4a24c' }}>sequência</em>.
+              </p>
+              <p style={{ fontSize: '14.5px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.7 }}>
+                Uma meditação por noite, na ordem certa. Cada uma prepara a próxima. Você não escolhe nada. Só aperta play.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Strata: three layers stacked */}
+        <div className="scroll-reveal stagger-3 mt-28 sm:mt-36">
+          <p className="text-center font-serif font-light italic mb-14 mx-auto max-w-[520px]" style={{ fontSize: 'clamp(18px, 2.2vw, 24px)', color: 'rgba(255,255,255,0.6)', lineHeight: 1.45 }}>
+            E cada noite atravessa <em className="not-italic" style={{ color: '#d4a24c' }}>três camadas</em> ao mesmo tempo.
+          </p>
+
+          <div className="relative">
+            {/* Continuous vertical thread — fixed position, behind numerals */}
+            <div
+              aria-hidden
+              className="absolute w-px"
+              style={{
+                top: '60px',
+                bottom: '60px',
+                left: '26px',
+                background:
+                  'linear-gradient(to bottom, transparent 0%, rgba(212,162,76,0.5) 8%, rgba(212,162,76,0.5) 92%, transparent 100%)',
+              }}
+            />
+
+            {layers.map((layer, i) => (
+              <div
+                key={layer.numeral}
+                className="relative flex gap-6 sm:gap-10"
+              >
+                {/* Left rail — numeral, fixed column */}
+                <div
+                  className="flex items-center justify-center flex-shrink-0"
+                  style={{ width: '52px' }}
+                >
+                  <span
+                    className="font-serif italic leading-none relative z-10"
+                    style={{
+                      fontSize: 'clamp(32px, 3.4vw, 46px)',
+                      color: '#d4a24c',
+                      padding: '6px 8px',
+                      background: '#0a0a0a',
+                    }}
+                  >
+                    {layer.numeral}.
+                  </span>
+                </div>
+
+                {/* Content — staggered right with progressive indent */}
+                <div
+                  className="flex-1 py-10 sm:py-14"
+                  style={{
+                    paddingLeft: `clamp(0px, ${i * 5}vw, ${i * 64}px)`,
+                  }}
+                >
+                  <p
+                    className="font-serif font-light tracking-tight"
+                    style={{ fontSize: 'clamp(24px, 2.8vw, 32px)', color: '#ffffff', lineHeight: 1.2 }}
+                  >
+                    {layer.title}
+                  </p>
+                  <p
+                    className="mt-3 max-w-[480px]"
+                    style={{ fontSize: 'clamp(14.5px, 1.4vw, 16px)', color: 'rgba(255,255,255,0.58)', lineHeight: 1.7 }}
+                  >
+                    {layer.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* Depth caption */}
+            <p
+              className="mt-6 sm:mt-8 font-serif italic text-right"
+              style={{
+                fontSize: '12px',
+                color: 'rgba(212,162,76,0.55)',
+                letterSpacing: '0.04em',
+                paddingRight: '4px',
+              }}
+            >
+              ↓ cada uma um pouco mais fundo
             </p>
           </div>
         </div>
 
-        <div className="scroll-reveal stagger-3 mx-auto mt-16 max-w-[760px] text-center sm:mt-20">
-          <p className="text-[14.5px] font-medium uppercase tracking-[0.16em] text-white/45 sm:text-[15px]">
-            Três camadas, uma combinação
+        {/* Closing */}
+        <div className="scroll-reveal stagger-4 mt-24 sm:mt-32 max-w-[640px] mx-auto text-center">
+          <p
+            className="font-serif font-light tracking-tight"
+            style={{ fontSize: 'clamp(24px, 3.6vw, 40px)', color: '#ffffff', lineHeight: 1.25 }}
+          >
+            Na sétima noite, o reflexo já está instalado.
           </p>
           <p
-            className="mx-auto mt-5 max-w-[640px] text-[17px] leading-[1.55] text-white/75 sm:text-[19px]"
+            className="font-serif font-light italic mt-3 tracking-tight"
+            style={{ fontSize: 'clamp(24px, 3.6vw, 40px)', color: '#d4a24c', lineHeight: 1.25 }}
           >
-            Cada meditação combina três camadas que trabalham simultâneas:
+            Você pode parar de abrir o app.
+          </p>
+          <p
+            className="font-serif font-light italic mt-5"
+            style={{ fontSize: 'clamp(17px, 2vw, 22px)', color: 'rgba(255,255,255,0.5)' }}
+          >
+            O sono fica.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-[1px] overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:mt-14 sm:grid-cols-3">
-          {layers.map((layer, i) => (
-            <div
-              key={layer.kicker}
-              className={`scroll-reveal stagger-${i + 1} flex flex-col gap-4 bg-[#0a0a0a] p-7 sm:p-9`}
-            >
-              <p
-                className="font-black leading-none tracking-[-0.04em] text-[#d4a24c]"
-                style={{ fontSize: 'clamp(36px, 4vw, 48px)', fontVariantNumeric: 'tabular-nums' }}
-              >
-                {layer.kicker}
-              </p>
-              <h3 className="text-[20px] font-bold leading-tight tracking-[-0.015em] text-white sm:text-[22px]">
-                {layer.title}
-              </h3>
-              <p className="text-[15px] leading-[1.55] text-white/65 sm:text-[15.5px]">
-                {layer.body}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="scroll-reveal stagger-5 mx-auto mt-16 max-w-[720px] text-center sm:mt-24">
-          <p
-            className="h-display mx-auto"
-            style={{
-              fontSize: 'clamp(22px, 3.4vw, 38px)',
-              lineHeight: 1.15,
-              letterSpacing: '-0.025em',
-              color: '#ffffff',
-            }}
-          >
-            Na sétima noite,
-            <br className="sm:hidden" />
-            {' '}o reflexo
-            <br className="hidden sm:block" />
-            {' '}já está instalado.
-            <br />
-            <span style={{ color: '#d4a24c' }}>
-              Você pode parar
-              <br className="sm:hidden" />
-              {' '}de abrir o app.
-            </span>
-            <br />
-            <span style={{ color: 'rgba(255,255,255,0.65)' }}>O sono fica.</span>
-          </p>
-        </div>
       </div>
     </section>
   );
