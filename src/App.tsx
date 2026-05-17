@@ -99,18 +99,18 @@ const protocolNights: ProtocolNight[] = [
   { night: 4, title: 'A mente para de revisar o dia', duration: '9 min', sensation: 'A mente para de revisar.', imageUrl: '/images/liberando-preocupacoes.webp' },
   { night: 5, title: 'O corpo entende que pode soltar', duration: '11 min', sensation: 'O peito solta.', imageUrl: '/images/criar-seguranca-interna.webp' },
   { night: 6, title: 'A noite em que você não percebe dormindo', duration: '12 min', sensation: 'O sono chega sem força.', imageUrl: '/images/sono-comeca-sozinho.webp' },
-  { night: 7, title: 'Seu novo normal', duration: '10 min', sensation: 'O ritual fica automático.', imageUrl: '/images/consolidar-padrao.webp' },
+  { night: 7, title: 'A noite que não precisa mais ser ensinada', duration: '10 min', sensation: 'O ritual fica automático.', imageUrl: '/images/consolidar-padrao.webp' },
 ];
 
 const night1 = protocolNights[0];
 const restNights = protocolNights.slice(1);
 
 const nightTimeline = [
-  { time: '23:47', text: 'Você apaga a luz. Sua mente acende.' },
-  { time: '01:15', text: 'Você olha o relógio. Faz conta.' },
-  { time: '04:22', text: 'Você acorda. A mente já está ligada.' },
+  { time: '23h', text: 'Você apaga a luz. Sua mente acende.' },
+  { time: '01h', text: 'Você olha o relógio. Faz conta.' },
+  { time: '04h', text: 'Você acorda. A mente já está ligada.' },
   {
-    time: '07:30',
+    time: '07h',
     text: 'Café, irritação, cansaço. Hoje à noite vai diferente.\nNão vai.',
   },
 ];
@@ -122,28 +122,24 @@ type FloatingIcon = {
     style?: React.CSSProperties;
   }>;
   size: number;
-  bg: string;
   position: React.CSSProperties;
   delay: string;
-  hideOnMobile?: boolean;
-  phase: 1 | 2 | 3;
-  image?: string;
 };
 
 const floatingIcons: FloatingIcon[] = [
-  { Icon: Moon, size: 68, bg: '#6b8e9e', position: { top: '10%', left: '5%' }, delay: '0s', phase: 2, image: '/images/phases/lua-mar.webp' },
-  { Icon: CloudRain, size: 60, bg: '#8e6b9c', position: { top: '14%', right: '7%' }, delay: '1s', phase: 1, image: '/images/phases/nuvem-chuva.webp' },
-  { Icon: Flame, size: 56, bg: '#c47a4a', position: { top: '40%', left: '3%' }, delay: '2s', phase: 3, image: '/images/phases/floresta-lua.webp' },
-  { Icon: Waves, size: 52, bg: '#7da896', position: { top: '38%', right: '3%' }, delay: '0.5s', phase: 1, image: '/images/phases/ondas-verdes.webp' },
-  { Icon: Music, size: 56, bg: '#a88556', position: { bottom: '22%', left: '10%' }, delay: '1.5s', phase: 3, image: '/images/phases/som-dourado.webp' },
-  { Icon: Wind, size: 64, bg: '#5a8b9e', position: { bottom: '14%', right: '8%' }, delay: '2.5s', phase: 1, image: '/images/phases/ar.webp' },
-  { Icon: Star, size: 44, bg: '#3a3a3a', position: { bottom: '6%', left: '32%' }, delay: '0.8s', phase: 2, image: '/images/phases/cosmos.webp' },
-  { Icon: Sparkles, size: 48, bg: '#9b7a52', position: { top: '60%', right: '6%' }, delay: '1.8s', phase: 2, image: '/images/phases/meditacao.webp' },
+  { Icon: Moon,      size: 42, position: { top: '10%', left: '5%' },     delay: '0s'   },
+  { Icon: CloudRain, size: 36, position: { top: '14%', right: '7%' },    delay: '1s'   },
+  { Icon: Flame,     size: 34, position: { top: '40%', left: '3%' },     delay: '2s'   },
+  { Icon: Waves,     size: 32, position: { top: '38%', right: '3%' },    delay: '0.5s' },
+  { Icon: Music,     size: 34, position: { bottom: '22%', left: '10%' }, delay: '1.5s' },
+  { Icon: Wind,      size: 38, position: { bottom: '14%', right: '8%' }, delay: '2.5s' },
+  { Icon: Star,      size: 28, position: { bottom: '6%', left: '32%' },  delay: '0.8s' },
+  { Icon: Sparkles,  size: 30, position: { top: '60%', right: '6%' },    delay: '1.8s' },
 ];
 
 const phaseData = [
   { word: 'Respiração', color: '#0a0a0a' },
-  { word: 'Atenção plena', color: '#0a0a0a' },
+  { word: 'Presença', color: '#0a0a0a' },
   { word: 'Segurança', color: '#c4c4be' },
 ];
 
@@ -176,12 +172,12 @@ const partnerCompanies = [
   { name: 'Globo', logo: '/images/brands/globo.svg', height: 46 },
 ];
 
-const offerIncludes: { text: string; price: string | null }[] = [
-  { text: 'Acesso ao app com 7 meditações guiadas (8 a 12 min cada), narradas por Arabella', price: 'R$ 167' },
-  { text: '11 ambientes sonoros combináveis dentro do app', price: 'R$ 67' },
-  { text: 'Meditação de emergência (3 min, pra noites difíceis)', price: 'R$ 47' },
-  { text: 'Acesso vitalício, sem renovação', price: 'R$ 119' },
-  { text: 'Garantia incondicional de 7 dias', price: null },
+const offerIncludes: string[] = [
+  'Acesso ao app com 7 meditações guiadas (8 a 12 min cada), narradas por Arabella',
+  '11 ambientes sonoros combináveis dentro do app',
+  'Meditação de emergência (3 min, pra noites difíceis)',
+  'Acesso vitalício, sem renovação',
+  'Garantia incondicional de 7 dias',
 ];
 
 type FaqItem = { q: string; a: string };
@@ -202,7 +198,7 @@ const faqItems: FaqItem[] = [
   { q: 'É só áudio? Não vai me encher de notificação?', a: 'Só áudio. De propósito. Notificação, gamificação e tela acesa às 23h é o oposto do que seu sistema nervoso precisa.' },
   { q: 'Posso ouvir mais de uma vez?', a: 'Sim. Acesso vitalício. Muita gente repete a sequência depois de períodos de estresse.' },
   { q: 'E se não funcionar pra mim?', a: '7 dias de garantia incondicional. Você escreve "não funcionou" e devolvemos 100%. Sem formulário, sem ligação, sem pergunta.' },
-  { q: 'Vou precisar continuar comprando coisas depois?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo. Nenhuma cobrança volta a aparecer.' },
+  { q: 'Vou ser cobrado de novo?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo. Nenhuma cobrança volta a aparecer.' },
   { q: 'Como recebo o protocolo depois de pagar?', a: 'Na hora. O pagamento é processado pelo Mercado Pago e você recebe o acesso imediato no seu email. Pode ouvir a Noite 1 hoje mesmo.' },
 ];
 
@@ -359,7 +355,7 @@ function Nav() {
           disabled={loading}
           className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] disabled:opacity-60 sm:px-5 sm:py-2.5 sm:text-[14px]"
         >
-          {loading ? 'Abrindo…' : 'Quero por R$ 147'}
+          {loading ? 'Abrindo…' : 'R$ 147 →'}
         </button>
       </div>
     </nav>
@@ -429,8 +425,42 @@ function AppIcon() {
 
 function Hero() {
   return (
-    <section id="topo" className="relative px-5 pb-20 pt-28 sm:px-8 sm:pb-28 sm:pt-[150px]">
-      <div className="mx-auto max-w-5xl text-center">
+    <section
+      id="topo"
+      className="relative overflow-hidden px-5 pb-20 pt-28 sm:px-8 sm:pb-28 sm:pt-[150px]"
+    >
+      {/* Atmospheric backdrop */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(70% 50% at 50% 26%, rgba(212,162,76,0.09) 0%, transparent 65%), radial-gradient(80% 55% at 50% 100%, rgba(10,10,10,0.04) 0%, transparent 70%)',
+        }}
+      />
+
+      {/* Asymmetric corner mark — top right */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute hidden sm:flex flex-col items-end gap-2"
+        style={{ top: '110px', right: '44px' }}
+      >
+        <div style={{ width: '28px', height: '1px', background: 'rgba(212,162,76,0.45)' }} />
+        <p
+          className="font-serif italic leading-none"
+          style={{ fontSize: '14px', color: 'rgba(212,162,76,0.7)', letterSpacing: '0.02em' }}
+        >
+          n.<sup style={{ fontSize: '9px' }}>o</sup> 01
+        </p>
+      </div>
+
+      <div className="relative mx-auto max-w-5xl text-center">
+
+        {/* Eyebrow */}
+        <p className="eyebrow reveal-soft mb-9">
+          Protocolo Sono Profundo
+        </p>
+
         <div className="reveal-soft flex justify-center">
           <AppIcon />
         </div>
@@ -445,7 +475,10 @@ function Hero() {
         >
           Você desliga a luz às 23h.
           <br />
-          <span className="text-[#6b6b6b]">
+          <span
+            className="font-serif italic"
+            style={{ fontWeight: 300, color: '#6b6b6b', letterSpacing: '-0.02em' }}
+          >
             Sua mente continua trabalhando
             <br className="hidden sm:block" />
             {' '}até as 4h.
@@ -453,22 +486,21 @@ function Hero() {
         </h1>
 
         <p
-          className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[640px] text-[#6b6b6b]"
+          className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[600px] text-[#6b6b6b]"
           style={{ fontSize: 'clamp(16.5px, 1.35vw, 18.5px)', lineHeight: 1.55 }}
         >
-          Um app com 7 meditações guiadas que ensinam seu sistema nervoso a desacelerar.
-          Uma por noite, em sequência. Pagamento único de R$ 147. Sem mensalidade,
-          acesso vitalício.
+          Sete noites para ensinar seu sistema nervoso a soltar. Uma meditação
+          por noite, em sequência. Você não escolhe nada — só aperta play.
         </p>
 
         <div className="reveal-soft animation-delay-300 mx-auto mt-11 flex w-full max-w-[420px] flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
-          <PrimaryCheckoutCta id="hero-cta" label="Quero dormir hoje · R$ 147" responsiveFull />
+          <PrimaryCheckoutCta id="hero-cta" label="Começar esta noite" responsiveFull />
           <OutlineNightsLink responsiveFull />
         </div>
 
         <p className="reveal-soft animation-delay-400 mx-auto mt-5 max-w-[480px] text-[13px] leading-[1.55] text-[#6b6b6b]">
-          <span className="font-bold text-[#d4a24c]">Garantia de 7 dias.</span>{' '}
-          Se não funcionar, devolvemos 100%. Sem formulário.
+          <span className="font-bold text-[#d4a24c]">R$ 147</span>
+          <span className="text-[#999]">{' '}· pagamento único</span>
         </p>
       </div>
     </section>
@@ -484,20 +516,22 @@ function WhoUsesIt() {
     <section className="relative bg-white px-5 py-20 sm:px-8 sm:py-[110px]">
       <div className="mx-auto max-w-[920px]">
         <div className="scroll-reveal mx-auto max-w-[680px] text-center">
-          <p className="eyebrow mb-7">Quem dorme assim</p>
+          <p className="eyebrow mb-7">Quem usa</p>
           <h2
             className="h-section mx-auto"
             style={{ fontSize: 'clamp(26px, 3.6vw, 42px)' }}
           >
-            Pessoas que dormem assim
-            <br className="sm:hidden" />
-            {' '}usam o app.
+            Profissionais que passam o dia decidindo.
+            <br className="hidden sm:block" />
+            {' '}
+            <span className="text-[#6b6b6b]">
+              E descobrem às 2h que a mente
+              <br className="sm:hidden" />
+              {' '}não tem botão de <span className="italic">off</span>.
+            </span>
           </h2>
-          <p className="mx-auto mt-7 max-w-[560px] text-[16.5px] leading-[1.6] text-[#6b6b6b] sm:text-[17.5px]">
-            Profissionais de tecnologia, finanças e mídia. Gente que passa o dia
-            tomando decisão e descobre, às{' '}
-            <span className="font-semibold text-[#0a0a0a]">2h da manhã</span>, que o
-            cérebro não tem botão de <span className="italic">off</span>.
+          <p className="mx-auto mt-7 max-w-[460px] text-[16.5px] leading-[1.6] text-[#6b6b6b] sm:text-[17.5px]">
+            Tecnologia, finanças, mídia. Gente que conhece o teto do quarto às 4h.
           </p>
         </div>
 
@@ -906,41 +940,26 @@ function Mechanism() {
       className="phases-section relative bg-white"
     >
       <div className="phases-sticky sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        {floatingIcons.map(({ Icon, size, bg, position, delay, hideOnMobile, image }, i) => (
+        {floatingIcons.map(({ Icon, size, position, delay }, i) => (
           <div
             key={i}
             aria-hidden
-            className={`floating-icon absolute z-[1] overflow-hidden ${
-              hideOnMobile ? 'hidden sm:block' : 'block'
-            } ${image ? '' : 'flex items-center justify-center'}`}
+            className="floating-icon absolute z-[1] flex items-center justify-center"
             style={{
               ...position,
               width: `${size}px`,
               height: `${size}px`,
-              borderRadius: '18px',
-              backgroundColor: image ? 'transparent' : bg,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
               animationDelay: delay,
             }}
           >
-            {image ? (
-              <img
-                src={image}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Icon
-                className="text-white"
-                strokeWidth={1.85}
-                style={{
-                  width: `${Math.round(size * 0.42)}px`,
-                  height: `${Math.round(size * 0.42)}px`,
-                }}
-              />
-            )}
+            <Icon
+              strokeWidth={1.4}
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                color: 'rgba(212, 162, 76, 0.42)',
+              }}
+            />
           </div>
         ))}
 
@@ -1098,10 +1117,6 @@ function SoundExperience() {
           ))}
         </div>
       </div>
-
-      <p className="mx-auto mt-8 max-w-[640px] px-5 text-center text-[14px] text-[#999]">
-        Nunca a mesma noite duas vezes.
-      </p>
     </section>
   );
 }
@@ -1317,7 +1332,7 @@ function Testimonials() {
     <section className="bg-[#fafaf7] px-5 py-20 sm:px-8 sm:py-[100px]">
       <div className="mx-auto max-w-[760px]">
         <div className="scroll-reveal text-center">
-          <p className="eyebrow mb-7">O que elas dizem</p>
+          <p className="eyebrow mb-7">As mensagens que chegam</p>
           <h2
             className="h-section mx-auto"
             style={{ fontSize: 'clamp(32px, 4.5vw, 56px)' }}
@@ -1362,7 +1377,7 @@ function Offer() {
     <section id="oferta" className="bg-[#f3f3ee] px-5 py-20 sm:px-8 sm:py-[120px]">
       <div className="scroll-reveal reveal-scale mx-auto max-w-[640px]">
         <div className="offer-card overflow-hidden rounded-3xl bg-white px-6 pb-12 pt-12 sm:px-14 sm:pb-[56px] sm:pt-[56px]">
-          <p className="text-center text-[12px] font-bold uppercase tracking-[0.1em] text-[#d4a24c]">
+          <p className="eyebrow mx-auto">
             Protocolo Completo · 7 Noites
           </p>
 
@@ -1375,7 +1390,7 @@ function Offer() {
             <span className="text-[#6b6b6b]">
               Um pagamento.
               <br className="sm:hidden" />
-              {' '}Pra sempre.
+              {' '}Pra repetir quando precisar.
             </span>
           </h2>
 
@@ -1383,43 +1398,30 @@ function Offer() {
             Em sete noites, seu corpo aprende a encontrar o sono sem ajuda. Você
             desinstala o app se quiser. A capacidade fica.
           </p>
-          <p className="mx-auto mt-2.5 max-w-lg text-center text-[13px] font-medium text-[#999]">
-            Pagamento único. Sem renovação. Acesso vitalício.
-          </p>
 
           <ul className="mx-auto my-8 flex max-w-[420px] flex-col gap-3 border-y border-[#f0f0ec] py-5">
             {offerIncludes.map((item, i) => (
-              <li key={item.text} className={`scroll-reveal stagger-${(i % 5) + 1} flex items-start justify-between gap-3`}>
-                <span className="flex items-start gap-2.5">
-                  <Check
-                    className="mt-[3px] h-4 w-4 shrink-0 text-[#d4a24c]"
-                    strokeWidth={2.25}
-                  />
-                  <span className="text-[14px] font-medium leading-[1.45] text-[#0a0a0a]">
-                    {item.text}
-                  </span>
+              <li key={item} className={`scroll-reveal stagger-${(i % 5) + 1} flex items-start gap-2.5`}>
+                <Check
+                  className="mt-[3px] h-4 w-4 shrink-0 text-[#d4a24c]"
+                  strokeWidth={2.25}
+                />
+                <span className="text-[14px] font-medium leading-[1.45] text-[#0a0a0a]">
+                  {item}
                 </span>
-                {item.price && (
-                  <span className="shrink-0 text-[13px] font-medium tabular-nums text-[#a8a8a3] line-through">
-                    {item.price}
-                  </span>
-                )}
               </li>
             ))}
           </ul>
 
           <div className="my-10 text-center">
-            <p className="text-[14px] font-medium text-[#a8a8a3]">
-              Valor total: <span className="line-through">R$ 400</span>
-            </p>
             <p
-              className="mt-1 font-black leading-[0.95] tracking-[-0.04em] text-[#0a0a0a]"
+              className="font-black leading-[0.95] tracking-[-0.04em] text-[#0a0a0a]"
               style={{ fontSize: 'clamp(64px, 13vw, 96px)' }}
             >
               R$ 147
             </p>
             <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#999]">
-              Hoje · Pagamento único · Acesso vitalício
+              Cobrança única
             </p>
           </div>
 
@@ -1551,7 +1553,7 @@ function FinalCta() {
         </div>
 
         <p className="scroll-reveal stagger-3 mt-8 text-[12px] font-medium tracking-[0.04em] text-[#999]">
-          Pagamento único · Garantia de 7 dias · Acesso vitalício
+          Garantia de 7 dias
         </p>
       </div>
     </section>
@@ -1602,7 +1604,7 @@ function StickyCheckoutBar() {
         <div className="mb-2 flex items-center justify-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d4a24c]" aria-hidden />
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6b6b6b]">
-            7 noites · garantia · acesso vitalício
+            Esta noite pode ser diferente
           </p>
         </div>
         <button
