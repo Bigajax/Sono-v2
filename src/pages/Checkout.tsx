@@ -91,314 +91,255 @@ function friendlyError(detail: string | undefined, fallback: string): string {
 }
 
 // ============================================================
-// Reusable: Trust strip
-// ============================================================
-function TrustStrip() {
-  const items = [
-    { Icon: Lock, label: 'Criptografia SSL' },
-    { Icon: ShieldCheck, label: 'Mercado Pago' },
-    { Icon: Clock, label: 'Garantia 7 dias' },
-  ];
-  return (
-    <div className="mx-auto flex max-w-[560px] flex-wrap items-center justify-center gap-x-6 gap-y-2">
-      {items.map(({ Icon, label }) => (
-        <div key={label} className="flex items-center gap-1.5">
-          <Icon className="h-[13px] w-[13px] text-[#d4a24c]" strokeWidth={2} />
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#6b6b6b]">
-            {label}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ============================================================
-// Header — eyebrow + título (sem preço; preço agora vive no OrderSummary)
+// Header — linha minimalista: voltar + selo Checkout seguro
+// O título do produto vive dentro do PricingCard, sem duplicar.
 // ============================================================
 function Header() {
   return (
-    <header className="px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
-      <Link
-        to="/"
-        className="mb-10 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6b6b6b] transition-opacity hover:opacity-65"
-      >
-        <ArrowLeft className="h-[14px] w-[14px]" strokeWidth={2.25} />
-        Voltar para a página
-      </Link>
-
-      <div className="mx-auto max-w-[560px] text-center">
-        <p
-          className="inline-flex items-center gap-2.5 text-[10.5px] font-bold uppercase tracking-[0.22em]"
+    <header className="px-5 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-10">
+      <div className="mx-auto flex max-w-[640px] flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6b6b6b] transition-opacity hover:opacity-65"
+        >
+          <ArrowLeft className="h-[14px] w-[14px]" strokeWidth={2.25} />
+          Voltar para a página
+        </Link>
+        <span
+          className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] sm:text-[10.5px]"
           style={{ color: '#d4a24c' }}
         >
-          <Lock className="h-[12px] w-[12px]" strokeWidth={2.5} />
+          <Lock className="h-[11px] w-[11px] sm:h-[12px] sm:w-[12px]" strokeWidth={2.5} />
           Checkout seguro
-        </p>
-
-        <h1
-          className="mt-5 font-black leading-[1.02] tracking-[-0.025em] text-[#0a0a0a]"
-          style={{ fontSize: 'clamp(28px, 4.2vw, 40px)' }}
-        >
-          Protocolo Sono Profundo
-        </h1>
-        <p
-          className="mt-2 text-[15px] font-medium tracking-[0.005em] text-[#6b6b6b] sm:text-[16px]"
-        >
-          7 noites · acesso vitalício
-        </p>
+        </span>
       </div>
     </header>
   );
 }
 
 // ============================================================
-// Order summary — itens incluídos + preço com âncora + garantia
+// Pricing card — visual inspirado no shadcn pricing-card:
+// faixa diagonal "Recomendado", Switch Cartão/Pix, preço grande,
+// features list em 2 estilos (highlight preto / normal cinza) e CTA
+// outlined no rodapé.
 // ============================================================
-const ORDER_ITEMS = [
-  '7 meditações guiadas, narradas por Arabella (8 a 12 min cada)',
-  '11 ambientes sonoros combináveis dentro do app',
-  'Meditação de emergência para noites difíceis',
-  'Acesso vitalício, sem renovação ou cobrança recorrente',
+type Feature = { name: string; highlight: boolean };
+
+const FEATURES: Feature[] = [
+  { name: '7 meditações guiadas, narradas por Arabella (8 a 12 min cada)', highlight: true },
+  { name: '11 ambientes sonoros combináveis dentro do app', highlight: true },
+  { name: 'Meditação de emergência para noites difíceis', highlight: false },
+  { name: 'Acesso vitalício, sem renovação ou cobrança recorrente', highlight: false },
 ];
 
-function OrderSummary() {
+// Switch binário com bolinha que desliza — estilo shadcn/radix
+function MethodSwitch({
+  method,
+  onChange,
+}: {
+  method: NonNullable<Method>;
+  onChange: (m: NonNullable<Method>) => void;
+}) {
+  const isPix = method === 'pix';
   return (
-    <section className="mx-auto max-w-[560px] px-5 pb-10 sm:px-8" aria-label="Resumo do pedido">
-      <div
-        className="overflow-hidden rounded-2xl bg-white"
-        style={{ border: '1px solid #e5e5e2', boxShadow: '0 8px 32px rgba(10,10,10,0.04)' }}
+    <div className="flex items-center gap-2.5">
+      <button
+        type="button"
+        onClick={() => onChange('card')}
+        className={`text-[12.5px] font-medium tracking-[-0.005em] transition-colors ${
+          !isPix ? 'text-[#0a0a0a]' : 'text-[#999]'
+        }`}
       >
-        {/* Items */}
-        <div className="px-6 pt-7 pb-2 sm:px-8 sm:pt-8">
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#6b6b6b]">
-            Seu pedido
+        Cartão
+      </button>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={isPix}
+        aria-label={isPix ? 'Alternar para cartão' : 'Alternar para Pix'}
+        onClick={() => onChange(isPix ? 'card' : 'pix')}
+        className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-2"
+        style={{ background: isPix ? '#d4a24c' : '#e5e5e2' }}
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none block h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(10,10,10,0.2)] transition-transform"
+          style={{
+            transform: isPix ? 'translateX(22px)' : 'translateX(2px)',
+          }}
+        />
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('pix')}
+        className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium tracking-[-0.005em] transition-colors ${
+          isPix ? 'text-[#0a0a0a]' : 'text-[#999]'
+        }`}
+      >
+        Pix
+        <span
+          className={`inline-flex items-center rounded-full px-1.5 py-px text-[9px] font-bold transition-colors ${
+            isPix ? 'bg-[#d4a24c] text-white' : 'bg-[#f0e4cc] text-[#a87f30]'
+          }`}
+        >
+          −{PIX_DISCOUNT_PCT}%
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function PricingCard({ onContinue }: { onContinue: (m: NonNullable<Method>) => void }) {
+  // Padrão = Pix (recomendado, com desconto). O usuário pode trocar antes de continuar.
+  const [previewMethod, setPreviewMethod] = useState<NonNullable<Method>>('pix');
+  const [isHovered, setIsHovered] = useState(false);
+
+  const isPix = previewMethod === 'pix';
+  const currentPrice = isPix ? PIX_PRICE : PRODUCT_PRICE;
+
+  return (
+    <section className="mx-auto max-w-[480px] px-5 pb-10 sm:px-8" aria-label="Resumo e pagamento">
+      <div
+        className="relative overflow-hidden rounded-2xl bg-white transition-all duration-300"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          border: '1px solid #e5e5e2',
+          boxShadow: isHovered
+            ? '0 18px 56px rgba(10,10,10,0.10)'
+            : '0 8px 28px rgba(10,10,10,0.05)',
+        }}
+      >
+        {/* Faixa "Recomendado" diagonal — só aparece quando Pix selecionado.
+            A faixa está recomendando o Pix (pelo desconto), então some ao trocar para cartão. */}
+        <div
+          aria-hidden={!isPix}
+          className="pointer-events-none absolute right-0 top-0 z-10 h-[100px] w-[100px] overflow-hidden transition-opacity duration-300 sm:h-[120px] sm:w-[120px]"
+          style={{ opacity: isPix ? 1 : 0 }}
+        >
+          <div
+            className="absolute -right-[30px] top-[18px] rotate-45 px-9 py-1 text-center text-[9.5px] font-bold tracking-[0.12em] text-white shadow-[0_2px_8px_rgba(212,162,76,0.30)] sm:-right-[34px] sm:top-[22px] sm:px-10 sm:py-[5px] sm:text-[10.5px]"
+            style={{ background: '#d4a24c' }}
+          >
+            Recomendado
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="px-6 pb-6 pt-11 sm:px-9 sm:pb-7 sm:pt-14">
+          <h2 className="pr-20 text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#0a0a0a] sm:pr-0 sm:text-[24px]">
+            Protocolo Sono Profundo
+          </h2>
+          <p className="mt-2 text-[14px] leading-[1.55] text-[#6b6b6b] sm:text-[14.5px]">
+            7 noites para sua mente aprender a soltar.
           </p>
-          <ul className="mt-5 flex flex-col gap-3">
-            {ORDER_ITEMS.map((item) => (
-              <li key={item} className="flex items-start gap-2.5">
-                <Check
-                  className="mt-[3px] h-[15px] w-[15px] shrink-0 text-[#d4a24c]"
-                  strokeWidth={2.5}
-                />
-                <span className="text-[14px] leading-[1.5] text-[#0a0a0a]">{item}</span>
+        </div>
+
+        {/* Pricing + Switch */}
+        <div className="space-y-2.5 px-6 pb-1 sm:px-9">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className="font-bold leading-none tracking-[-0.025em] text-[#0a0a0a]"
+                style={{
+                  fontSize: 'clamp(28px, 7vw, 36px)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatBRL(currentPrice)}
+              </span>
+              <span className="text-[13px] font-medium text-[#6b6b6b] sm:text-[14px]">
+                /{isPix ? 'Pix' : 'cartão'}
+              </span>
+            </div>
+
+            <MethodSwitch method={previewMethod} onChange={setPreviewMethod} />
+          </div>
+
+          {isPix && (
+            <p className="text-[12px] font-medium" style={{ color: '#a87f30' }}>
+              Você economiza{' '}
+              <span className="font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {formatBRL(PIX_DISCOUNT_AMOUNT)}
+              </span>
+              {' '}({PIX_DISCOUNT_PCT}%) pagando no Pix
+            </p>
+          )}
+        </div>
+
+        {/* Features */}
+        <div className="space-y-3 px-6 pb-2 pt-7 sm:px-9">
+          <div className="text-[14px] font-bold tracking-[-0.005em] text-[#0a0a0a]">
+            Incluso:
+          </div>
+          <ul className="space-y-2.5">
+            {FEATURES.map((feature, i) => (
+              <li
+                key={feature.name}
+                className="flex items-start gap-2.5"
+                style={{
+                  opacity: 0,
+                  animation: `fadeInUp 0.4s ${i * 80}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                }}
+              >
+                <span
+                  className={`mt-[2px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${
+                    feature.highlight
+                      ? 'text-white'
+                      : 'bg-[#f0e4cc] text-[#a87f30]'
+                  }`}
+                  style={feature.highlight ? { background: '#d4a24c' } : undefined}
+                >
+                  <Check className="h-[11px] w-[11px]" strokeWidth={3} />
+                </span>
+                <span className="text-[13.5px] leading-[1.5] text-[#0a0a0a] sm:text-[14px]">
+                  {feature.name}
+                </span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Price block */}
-        <div className="mt-7 border-t border-[#f0f0ec] bg-[#fafaf7] px-6 py-6 sm:px-8 sm:py-7">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#6b6b6b]">
-                Total
-              </p>
-              <p className="mt-1 text-[12.5px] font-medium text-[#6b6b6b]">
-                Pagamento único · sem mensalidade
-              </p>
-            </div>
-            <div className="text-right">
-              <p
-                className="text-[12.5px] font-medium leading-none text-[#999]"
-                style={{ textDecoration: 'line-through', textDecorationThickness: '1.5px' }}
-              >
-                R$ 247
-              </p>
-              <p
-                className="mt-1 font-black leading-none tracking-[-0.025em] text-[#0a0a0a]"
-                style={{ fontSize: 'clamp(32px, 5vw, 42px)' }}
-              >
-                {formatBRL(PRODUCT_PRICE)}
-              </p>
-              <p className="mt-1 text-[11.5px] font-medium text-[#6b6b6b]">
-                no cartão (até 3x sem juros)
-              </p>
-            </div>
-          </div>
-
-          {/* Pix discount callout */}
-          <div
-            className="mt-5 flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 sm:px-5"
+        {/* CTA outlined */}
+        <div className="px-6 pb-7 pt-7 sm:px-9 sm:pb-8 sm:pt-8">
+          <button
+            type="button"
+            onClick={() => onContinue(previewMethod)}
+            className="group flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-[14.5px] font-semibold tracking-[-0.005em] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-2 sm:text-[15px]"
             style={{
-              background: 'rgba(212,162,76,0.08)',
-              border: '1px dashed rgba(212,162,76,0.45)',
+              border: '1.5px solid #d4a24c',
+              color: '#0a0a0a',
+              background: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#d4a24c';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#0a0a0a';
             }}
           >
-            <div className="flex items-start gap-2.5">
-              <Zap
-                className="mt-[2px] h-[15px] w-[15px] shrink-0 text-[#d4a24c]"
-                strokeWidth={2.25}
-                fill="#d4a24c"
-              />
-              <div>
-                <p className="text-[12.5px] font-bold leading-tight text-[#0a0a0a]">
-                  Pagando no Pix: {formatBRL(PIX_PRICE)}
-                </p>
-                <p className="mt-0.5 text-[11.5px] leading-snug text-[#6b6b6b]">
-                  {PIX_DISCOUNT_PCT}% de desconto · economize {formatBRL(PIX_DISCOUNT_AMOUNT)}
-                </p>
-              </div>
-            </div>
-            <span
-              className="shrink-0 rounded-full px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white"
-              style={{ background: '#d4a24c' }}
-            >
-              -{PIX_DISCOUNT_PCT}%
-            </span>
-          </div>
+            Continuar com {isPix ? 'Pix' : 'cartão'}
+            <ArrowRight
+              className="h-[15px] w-[15px] transition-transform group-hover:translate-x-0.5"
+              strokeWidth={2.25}
+            />
+          </button>
         </div>
-
       </div>
-    </section>
-  );
-}
 
-// ============================================================
-// Method cards — Pix / Cartão
-// ============================================================
-function MethodSelection({ onSelect }: { onSelect: (m: Method) => void }) {
-  return (
-    <section className="mx-auto mt-10 max-w-[640px] px-5 pb-16 sm:px-8" aria-label="Escolher forma de pagamento">
-      <p className="mb-6 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#6b6b6b]">
-        Como você quer pagar?
+      <p className="mt-4 text-center text-[11px] leading-[1.55] text-[#999] sm:mt-5">
+        Preço de tabela{' '}
+        <span style={{ textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+          {formatBRL(247)}
+        </span>
+        {' '}· economia de R$ 100 no preço de lançamento
       </p>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Pix card */}
-        <button
-          type="button"
-          onClick={() => onSelect('pix')}
-          aria-label={`Pagar com Pix por ${formatBRL(PIX_PRICE)} — ${PIX_DISCOUNT_PCT}% de desconto`}
-          className="method-card method-card--pix group relative flex flex-col overflow-hidden rounded-2xl bg-white text-left transition-all duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c]"
-          style={{
-            border: '1.5px solid rgba(212,162,76,0.55)',
-            boxShadow:
-              '0 12px 36px rgba(212,162,76,0.10), 0 0 0 1px rgba(212,162,76,0.10) inset',
-          }}
-        >
-          {/* Eyebrow + ícone */}
-          <div className="flex items-start justify-between px-6 pt-6 sm:px-7 sm:pt-7">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#fff8ec]">
-              <Zap className="h-[22px] w-[22px] text-[#d4a24c]" strokeWidth={2} fill="#d4a24c" />
-            </div>
-            <span
-              aria-hidden
-              className="inline-flex items-center rounded-full px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.14em] text-white"
-              style={{ background: '#d4a24c' }}
-            >
-              -{PIX_DISCOUNT_PCT}% off
-            </span>
-          </div>
-
-          {/* Title + descrição */}
-          <div className="flex-1 px-6 pb-6 pt-5 sm:px-7 sm:pb-7">
-            <h3 className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#0a0a0a]">
-              Pix
-            </h3>
-
-            {/* Preço com desconto */}
-            <div className="mt-3 flex items-baseline gap-2">
-              <span
-                className="text-[12px] font-medium leading-none text-[#999]"
-                style={{ textDecoration: 'line-through' }}
-              >
-                {formatBRL(PRODUCT_PRICE)}
-              </span>
-              <span className="text-[20px] font-black leading-none tracking-[-0.015em] text-[#0a0a0a]">
-                {formatBRL(PIX_PRICE)}
-              </span>
-            </div>
-
-            <p className="mt-3 text-[13px] leading-[1.55] text-[#6b6b6b]">
-              QR Code na próxima tela. Aprovação imediata e acesso liberado em segundos.
-            </p>
-          </div>
-
-          {/* Footer CTA */}
-          <div
-            className="flex items-center justify-between border-t border-[#f0e4cc] px-6 py-4 transition-colors group-hover:bg-[#fff8ec] sm:px-7"
-            style={{ background: 'rgba(212,162,76,0.06)' }}
-          >
-            <span className="text-[13.5px] font-bold tracking-[-0.005em] text-[#0a0a0a]">
-              Pagar com Pix
-            </span>
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-transform group-hover:translate-x-1"
-              style={{ background: '#d4a24c' }}
-              aria-hidden
-            >
-              <ArrowRight className="h-[14px] w-[14px] text-white" strokeWidth={2.5} />
-            </span>
-          </div>
-        </button>
-
-        {/* Card */}
-        <button
-          type="button"
-          onClick={() => onSelect('card')}
-          aria-label="Pagar com cartão de crédito"
-          className="method-card group relative flex flex-col overflow-hidden rounded-2xl bg-white text-left transition-all duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a0a]"
-          style={{
-            border: '1.5px solid #e5e5e2',
-            boxShadow: '0 6px 24px rgba(10,10,10,0.04)',
-          }}
-        >
-          {/* Eyebrow + ícone */}
-          <div className="flex items-start justify-between px-6 pt-6 sm:px-7 sm:pt-7">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f3f3ee]">
-              <CreditCard className="h-[22px] w-[22px] text-[#0a0a0a]" strokeWidth={2} />
-            </div>
-            <span
-              aria-hidden
-              className="inline-flex items-center rounded-full px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.14em]"
-              style={{ background: '#f3f3ee', color: '#6b6b6b' }}
-            >
-              Até 3x s/ juros
-            </span>
-          </div>
-
-          {/* Title + descrição */}
-          <div className="flex-1 px-6 pb-6 pt-5 sm:px-7 sm:pb-7">
-            <h3 className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#0a0a0a]">
-              Cartão de crédito
-            </h3>
-
-            {/* Preço */}
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-[20px] font-black leading-none tracking-[-0.015em] text-[#0a0a0a]">
-                {formatBRL(PRODUCT_PRICE)}
-              </span>
-              <span className="text-[11.5px] font-medium text-[#6b6b6b]">
-                ou 3x sem juros
-              </span>
-            </div>
-
-            <p className="mt-3 text-[13px] leading-[1.55] text-[#6b6b6b]">
-              Visa, Mastercard, Elo, Amex e Hipercard. Processado no ambiente do Mercado Pago.
-            </p>
-          </div>
-
-          {/* Footer CTA */}
-          <div
-            className="flex items-center justify-between border-t border-[#f0f0ec] bg-[#fafaf7] px-6 py-4 transition-colors group-hover:bg-[#f3f3ee] sm:px-7"
-          >
-            <span className="text-[13.5px] font-bold tracking-[-0.005em] text-[#0a0a0a]">
-              Pagar com cartão
-            </span>
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0a0a] transition-transform group-hover:translate-x-1"
-              aria-hidden
-            >
-              <ArrowRight className="h-[14px] w-[14px] text-white" strokeWidth={2.5} />
-            </span>
-          </div>
-        </button>
-      </div>
-
     </section>
   );
 }
+
 
 // ============================================================
 // BackLink
@@ -1027,11 +968,17 @@ function Checkout() {
     document.title = 'Checkout · Protocolo Sono Profundo';
   }, []);
 
+  // Ao trocar de método (seleção / Pix / Cartão), reseta o scroll para o topo
+  // — sem isso, o usuário fica "preso" na altura dos cards de método e o
+  // formulário do método escolhido fica fora da viewport inicial.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [method]);
+
   return (
     <main className="min-h-screen bg-[#fafaf7]">
       <Header />
-      {!method && <OrderSummary />}
-      {!method && <MethodSelection onSelect={setMethod} />}
+      {!method && <PricingCard onContinue={setMethod} />}
       {method === 'pix' && <PixFlow onBack={() => setMethod(null)} />}
       {method === 'card' && <CardFlow onBack={() => setMethod(null)} />}
       <SecurityFooter />

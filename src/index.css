@@ -424,6 +424,18 @@
   box-shadow: 0 0 0 3px rgba(212, 162, 76, 0.12);
 }
 
+/* ---------- Checkout: feature list stagger ---------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ---------- Card brand logos ---------- */
 /* Imagens já vêm com fundo transparente real (remove.bg) — sem blend-mode */
 .card-brand-logo {
