@@ -7,6 +7,7 @@ declare global {
 type StandardEvent =
   | 'Lead'
   | 'InitiateCheckout'
+  | 'AddPaymentInfo'
   | 'Purchase'
   | 'CompleteRegistration'
   | 'ViewContent';

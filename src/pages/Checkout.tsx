@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 import { getApiBaseUrl } from '../lib/warmup';
+import { trackPixel } from '../lib/tracking';
 
 const PRODUCT_PRICE = 147;
 const PIX_DISCOUNT_PCT = 10;
@@ -132,8 +133,10 @@ const FEATURES: Feature[] = [
   { name: 'Acesso vitalício, sem renovação ou cobrança recorrente', highlight: false },
 ];
 
-// Switch binário com bolinha que desliza — estilo shadcn/radix
-function MethodSwitch({
+// Segmented control — duas pílulas lado a lado. Substitui o switch antigo
+// (bolinha entre 2 labels) que era ambíguo: o usuário não conseguia dizer
+// imediatamente qual método estava selecionado.
+function MethodSegmented({
   method,
   onChange,
 }: {
@@ -142,44 +145,40 @@ function MethodSwitch({
 }) {
   const isPix = method === 'pix';
   return (
-    <div className="flex items-center gap-2.5">
+    <div
+      role="radiogroup"
+      aria-label="Forma de pagamento"
+      className="inline-flex items-center gap-1 rounded-full p-1"
+      style={{ background: '#f0e9dc' }}
+    >
       <button
         type="button"
+        role="radio"
+        aria-checked={!isPix}
         onClick={() => onChange('card')}
-        className={`text-[12.5px] font-medium tracking-[-0.005em] transition-colors ${
-          !isPix ? 'text-[#0a0a0a]' : 'text-[#999]'
+        className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] ${
+          !isPix
+            ? 'bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(10,10,10,0.10)]'
+            : 'text-[#a89878]'
         }`}
       >
         Cartão
       </button>
       <button
         type="button"
-        role="switch"
+        role="radio"
         aria-checked={isPix}
-        aria-label={isPix ? 'Alternar para cartão' : 'Alternar para Pix'}
-        onClick={() => onChange(isPix ? 'card' : 'pix')}
-        className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-2"
-        style={{ background: isPix ? '#d4a24c' : '#e5e5e2' }}
-      >
-        <span
-          aria-hidden
-          className="pointer-events-none block h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(10,10,10,0.2)] transition-transform"
-          style={{
-            transform: isPix ? 'translateX(22px)' : 'translateX(2px)',
-          }}
-        />
-      </button>
-      <button
-        type="button"
         onClick={() => onChange('pix')}
-        className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium tracking-[-0.005em] transition-colors ${
-          isPix ? 'text-[#0a0a0a]' : 'text-[#999]'
+        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] ${
+          isPix
+            ? 'bg-[#0a0a0a] text-white shadow-[0_1px_3px_rgba(10,10,10,0.20)]'
+            : 'text-[#a89878]'
         }`}
       >
         Pix
         <span
           className={`inline-flex items-center rounded-full px-1.5 py-px text-[9px] font-bold transition-colors ${
-            isPix ? 'bg-[#d4a24c] text-white' : 'bg-[#f0e4cc] text-[#a87f30]'
+            isPix ? 'bg-[#d4a24c] text-white' : 'bg-white text-[#a87f30]'
           }`}
         >
           −{PIX_DISCOUNT_PCT}%
@@ -238,7 +237,7 @@ function PricingCard({ onContinue }: { onContinue: (m: NonNullable<Method>) => v
         {/* Pricing + Switch */}
         <div className="space-y-2.5 px-6 pb-1 sm:px-9">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-2">
               <span
                 className="font-bold leading-none tracking-[-0.025em] text-[#0a0a0a]"
                 style={{
@@ -249,11 +248,11 @@ function PricingCard({ onContinue }: { onContinue: (m: NonNullable<Method>) => v
                 {formatBRL(currentPrice)}
               </span>
               <span className="text-[13px] font-medium text-[#6b6b6b] sm:text-[14px]">
-                /{isPix ? 'Pix' : 'cartão'}
+                {isPix ? 'no Pix' : 'no cartão'}
               </span>
             </div>
 
-            <MethodSwitch method={previewMethod} onChange={setPreviewMethod} />
+            <MethodSegmented method={previewMethod} onChange={setPreviewMethod} />
           </div>
 
           {isPix && (
@@ -300,11 +299,21 @@ function PricingCard({ onContinue }: { onContinue: (m: NonNullable<Method>) => v
           </ul>
         </div>
 
-        {/* CTA outlined */}
+        {/* CTA outlined — label inclui método + preço para zero ambiguidade */}
         <div className="px-6 pb-7 pt-7 sm:px-9 sm:pb-8 sm:pt-8">
           <button
             type="button"
-            onClick={() => onContinue(previewMethod)}
+            onClick={() => {
+              trackPixel('AddPaymentInfo', {
+                content_name: 'Protocolo Sono Profundo — 7 noites',
+                content_ids: ['protocolo_sono_7_noites'],
+                content_type: 'product',
+                value: currentPrice,
+                currency: 'BRL',
+                payment_method: isPix ? 'pix' : 'card',
+              });
+              onContinue(previewMethod);
+            }}
             className="group flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-[14.5px] font-semibold tracking-[-0.005em] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-2 sm:text-[15px]"
             style={{
               border: '1.5px solid #d4a24c',
@@ -320,7 +329,9 @@ function PricingCard({ onContinue }: { onContinue: (m: NonNullable<Method>) => v
               e.currentTarget.style.color = '#0a0a0a';
             }}
           >
-            Continuar com {isPix ? 'Pix' : 'cartão'}
+            {isPix
+              ? `Continuar com Pix · ${formatBRL(PIX_PRICE)}`
+              : `Continuar com cartão · ${formatBRL(PRODUCT_PRICE)}`}
             <ArrowRight
               className="h-[15px] w-[15px] transition-transform group-hover:translate-x-0.5"
               strokeWidth={2.25}
