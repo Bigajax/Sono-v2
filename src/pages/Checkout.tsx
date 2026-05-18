@@ -217,18 +217,6 @@ function OrderSummary() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
-            <span
-              className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white"
-              style={{ background: '#d4a24c' }}
-            >
-              Preço de lançamento
-            </span>
-            <span className="text-[11.5px] font-medium text-[#6b6b6b]">
-              Você economiza R$ 100
-            </span>
-          </div>
-
           {/* Pix discount callout */}
           <div
             className="mt-5 flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 sm:px-5"
@@ -261,24 +249,6 @@ function OrderSummary() {
           </div>
         </div>
 
-        {/* Guarantee strip inside card */}
-        <div
-          className="flex items-start gap-2.5 border-t border-[#f0f0ec] px-6 py-4 sm:px-8"
-          style={{ background: '#fff8ec' }}
-        >
-          <ShieldCheck
-            className="mt-[2px] h-[16px] w-[16px] shrink-0 text-[#d4a24c]"
-            strokeWidth={2}
-          />
-          <p className="text-[12.5px] leading-[1.5] text-[#6b6b6b]">
-            <span className="font-bold text-[#0a0a0a]">Garantia incondicional de 7 dias.</span>{' '}
-            Não funcionou? Devolvemos 100%. Sem formulário, sem pergunta.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <TrustStrip />
       </div>
     </section>
   );
@@ -426,11 +396,6 @@ function MethodSelection({ onSelect }: { onSelect: (m: Method) => void }) {
         </button>
       </div>
 
-      <p className="mt-7 text-center text-[11.5px] leading-[1.6] text-[#999]">
-        Você é redirecionado ao ambiente seguro do Mercado Pago para concluir o pagamento.
-        <br />
-        Nenhum dado de cartão fica armazenado em nossos servidores.
-      </p>
     </section>
   );
 }
@@ -1014,72 +979,40 @@ function CardBrandsStrip() {
 }
 
 // ============================================================
-// Security footer — bloco visível no rodapé
+// Security footer — linha compacta com bandeiras + trust signals
 // ============================================================
 function SecurityFooter() {
   return (
-    <footer className="mx-auto max-w-[640px] px-5 pb-16 sm:px-8">
-      <div className="mt-4 rounded-2xl bg-white px-6 py-7 sm:px-8 sm:py-8" style={{ border: '1px solid #e5e5e2' }}>
-        <div className="grid gap-5 sm:grid-cols-3">
-          <div className="flex items-start gap-3">
-            <Lock className="mt-[2px] h-[18px] w-[18px] shrink-0 text-[#d4a24c]" strokeWidth={2} />
-            <div>
-              <p className="text-[13.5px] font-semibold leading-snug text-[#0a0a0a]">
-                Pagamento criptografado
-              </p>
-              <p className="mt-1 text-[12px] leading-[1.5] text-[#6b6b6b]">
-                Conexão SSL. Seus dados viajam protegidos do começo ao fim.
-              </p>
-            </div>
-          </div>
+    <footer className="mx-auto max-w-[640px] px-5 pb-12 sm:px-8">
+      <div className="mt-2 flex flex-col items-center gap-5">
+        <CardBrandsStrip />
 
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-[2px] h-[18px] w-[18px] shrink-0 text-[#d4a24c]" strokeWidth={2} />
-            <div>
-              <p className="text-[13.5px] font-semibold leading-snug text-[#0a0a0a]">
-                Mercado Pago
-              </p>
-              <p className="mt-1 text-[12px] leading-[1.5] text-[#6b6b6b]">
-                A maior plataforma de pagamentos da América Latina processa sua compra.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Clock className="mt-[2px] h-[18px] w-[18px] shrink-0 text-[#d4a24c]" strokeWidth={2} />
-            <div>
-              <p className="text-[13.5px] font-semibold leading-snug text-[#0a0a0a]">
-                Garantia de 7 dias
-              </p>
-              <p className="mt-1 text-[12px] leading-[1.5] text-[#6b6b6b]">
-                Não funcionou? Devolvemos 100% do valor. Sem pergunta.
-              </p>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#999]">
+          <span className="inline-flex items-center gap-1.5">
+            <Lock className="h-[11px] w-[11px] text-[#d4a24c]" strokeWidth={2.25} />
+            Conexão SSL
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-[12px] w-[12px] text-[#d4a24c]" strokeWidth={2.25} />
+            Mercado Pago
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-[11px] w-[11px] text-[#d4a24c]" strokeWidth={2.25} />
+            Garantia 7 dias
+          </span>
         </div>
 
-        <div className="mt-7 border-t border-[#f0f0ec] pt-6">
-          <p className="mb-3 text-center text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#999]">
-            Bandeiras aceitas no cartão
-          </p>
-          <CardBrandsStrip />
-        </div>
+        <p className="text-center text-[11.5px] leading-[1.6] text-[#999]">
+          Dúvidas?{' '}
+          <a
+            href="mailto:ecotopia.app777@gmail.com"
+            className="font-semibold text-[#6b6b6b] underline-offset-2 hover:underline"
+          >
+            ecotopia.app777@gmail.com
+          </a>
+          {' '}· © 2026 Ecotopia
+        </p>
       </div>
-
-      <p className="mt-6 text-center text-[11.5px] leading-[1.6] text-[#999]">
-        Em caso de dúvidas, fale com{' '}
-        <a
-          href="mailto:ecotopia.app777@gmail.com"
-          className="font-semibold text-[#6b6b6b] underline-offset-2 hover:underline"
-        >
-          ecotopia.app777@gmail.com
-        </a>
-        .
-      </p>
-
-      <p className="mt-5 text-center text-[11px] leading-[1.55] text-[#999]">
-        © 2026 Ecotopia · Protocolo Sono Profundo · 7 noites
-      </p>
     </footer>
   );
 }
