@@ -11,15 +11,22 @@ function Sucesso() {
   const [params] = useSearchParams();
   const status = params.get('status');
   const paymentId = params.get('payment_id') || params.get('collection_id') || '';
+  const externalReference = params.get('external_reference') || '';
 
   const isPending = status === 'pending' || status === 'in_process';
   const isFailure = status === 'failure' || status === 'rejected' || status === 'cancelled';
 
+  // Redireciona para /sono/obrigado no app principal. Essa página persiste
+  // os params em sessionStorage, manda pro login/register se preciso, e
+  // dispara POST /api/entitlements/claim após o user logar — liberando o
+  // acesso ao Protocolo Sono Profundo.
   const registerUrl = useMemo(() => {
-    const p = new URLSearchParams({ returnTo: '/app' });
-    if (paymentId) p.set('pid', paymentId);
-    return `https://ecofrontend888.vercel.app/register?${p.toString()}`;
-  }, [paymentId]);
+    const p = new URLSearchParams();
+    if (paymentId) p.set('payment_id', paymentId);
+    if (externalReference) p.set('external_reference', externalReference);
+    p.set('status', isPending ? 'pending' : 'approved');
+    return `https://ecofrontend888.vercel.app/sono/obrigado?${p.toString()}`;
+  }, [paymentId, externalReference, isPending]);
 
   const [retryError, setRetryError] = useState<string | null>(null);
 

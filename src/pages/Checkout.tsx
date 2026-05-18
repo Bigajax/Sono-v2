@@ -25,12 +25,14 @@ type PixResponse = {
   qr_code_base64: string;
   ticket_url: string;
   expiration_date: string;
+  external_reference?: string;
 };
 
 type CardResponse = {
   id: number | string;
   status: string;
   status_detail: string;
+  external_reference?: string;
 };
 
 type StatusResponse = {
@@ -279,7 +281,9 @@ function PixFlow({ onBack }: { onBack: () => void }) {
         const data: StatusResponse = await res.json();
         if (stopped) return;
         if (data.status === 'approved') {
-          navigate('/sucesso');
+          const qs = new URLSearchParams({ payment_id: String(data.id) });
+          if (pix.external_reference) qs.set('external_reference', pix.external_reference);
+          navigate(`/sucesso?${qs.toString()}`);
         } else if (data.status === 'cancelled' || data.status === 'rejected') {
           setErrorMsg('Pagamento cancelado ou recusado.');
           setStep('error');
@@ -571,12 +575,15 @@ function CardFlow({ onBack }: { onBack: () => void }) {
                 throw new Error(body?.message || 'Não foi possível processar o pagamento.');
               }
               const data: CardResponse = await res.json();
+              const qs = new URLSearchParams({ payment_id: String(data.id) });
+              if (data.external_reference) qs.set('external_reference', data.external_reference);
               if (data.status === 'approved') {
-                navigate('/sucesso');
+                navigate(`/sucesso?${qs.toString()}`);
                 return;
               }
               if (data.status === 'in_process' || data.status === 'pending') {
-                navigate('/sucesso?status=pending');
+                qs.set('status', 'pending');
+                navigate(`/sucesso?${qs.toString()}`);
                 return;
               }
               setErrorMsg(friendlyError(data.status_detail, 'Pagamento recusado. Tente outro cartão ou use Pix.'));
