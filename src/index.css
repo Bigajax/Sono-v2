@@ -395,3 +395,23 @@
   pointer-events: none;
   animation: appIconHaloBreath 4.8s ease-in-out infinite;
 }
+
+/* ---------- Checkout inputs ---------- */
+.checkout-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(157, 151, 204, 0.25);
+  border-radius: 10px;
+  color: #FDFBFF;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  outline: none;
+}
+.checkout-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+.checkout-input:focus {
+  border-color: rgba(196, 145, 60, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+.checkout-input:hover { background: rgba(255, 255, 255, 0.05); }
