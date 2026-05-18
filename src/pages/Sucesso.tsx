@@ -288,10 +288,10 @@ function Sucesso() {
           >
             Dúvidas?{' '}
             <a
-              href="mailto:contato@ecotopia.com"
+              href="mailto:ecotopia.app777@gmail.com"
               style={{ color: 'rgba(196,145,60,0.9)' }}
             >
-              contato@ecotopia.com
+              ecotopia.app777@gmail.com
             </a>
           </p>
         </div>
