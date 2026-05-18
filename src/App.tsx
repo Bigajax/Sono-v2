@@ -149,6 +149,14 @@ const protocolNights: ProtocolNight[] = [
 const night1 = protocolNights[0];
 const restNights = protocolNights.slice(1);
 
+// Citações curtas usadas no ticker do Hero — recortes de testimonials reais,
+// editados para caber em uma linha e funcionar como prova social acima da dobra.
+const heroQuotes: { quote: string; who: string }[] = [
+  { quote: 'Parei de calcular as horas na 3ª noite.', who: 'Caio, 42' },
+  { quote: 'Comecei a dormir antes do áudio terminar.', who: 'Fernanda, 35' },
+  { quote: 'Meu corpo parou de brigar com a cama.', who: 'Mariana, 38' },
+];
+
 const nightTimeline = [
   { time: '23h', text: 'Você apaga a luz. Sua mente acende.' },
   { time: '01h', text: 'Você olha o relógio. Faz conta.' },
@@ -475,11 +483,60 @@ function AppIcon() {
   );
 }
 
+// Prova social compacta acima do headline. Usa snippets reais e roda a cada
+// 5,5s — visível na primeira dobra mesmo em mobile, sem empurrar o CTA para
+// fora da tela.
+function SocialProofTicker() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const i = setInterval(() => setIdx((p) => (p + 1) % heroQuotes.length), 5500);
+    return () => clearInterval(i);
+  }, []);
+  const q = heroQuotes[idx];
+  return (
+    <div className="reveal-soft animation-delay-100 mx-auto mt-5 flex flex-col items-center gap-1.5 sm:mt-6">
+      <div className="inline-flex items-center gap-[3px]" aria-label="Avaliação 5 estrelas">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Star key={i} className="h-[12px] w-[12px]" fill="#d4a24c" stroke="none" />
+        ))}
+      </div>
+      <p
+        key={idx}
+        className="label-flip max-w-[440px] px-2 text-[13px] italic leading-snug text-[#0a0a0a] sm:max-w-none sm:text-[13.5px]"
+      >
+        “{q.quote}”
+        <span className="ml-1.5 text-[12px] not-italic text-[#999]">— {q.who}</span>
+      </p>
+    </div>
+  );
+}
+
+// Linha de risk-reversal logo abaixo do CTA. Substitui o "R$ 147 · pagamento
+// único" antigo concentrando garantia + pagamento único + vitalício em três
+// micro-badges com ícone dourado.
+function HeroTrustRow() {
+  const items: { icon: typeof Check; label: string }[] = [
+    { icon: ShieldCheck, label: '7 dias de garantia' },
+    { icon: Check, label: 'Pagamento único' },
+    { icon: Sparkles, label: 'Acesso vitalício' },
+  ];
+  return (
+    <div className="reveal-soft animation-delay-400 mx-auto mt-6 flex max-w-[520px] flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px] font-medium text-[#6b6b6b] sm:gap-x-6">
+      {items.map(({ icon: Icon, label }) => (
+        <span key={label} className="inline-flex items-center gap-1.5">
+          <Icon className="h-[13px] w-[13px] text-[#d4a24c]" strokeWidth={2.25} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Hero() {
   return (
     <section
       id="topo"
-      className="relative overflow-hidden px-5 pb-20 pt-28 sm:px-8 sm:pb-28 sm:pt-[150px]"
+      className="relative overflow-hidden px-5 pb-20 pt-24 sm:px-8 sm:pb-28 sm:pt-[140px]"
     >
       {/* Atmospheric backdrop */}
       <div
@@ -509,7 +566,7 @@ function Hero() {
       <div className="relative mx-auto max-w-5xl text-center">
 
         {/* Eyebrow */}
-        <p className="eyebrow reveal-soft mb-9">
+        <p className="eyebrow reveal-soft mb-7">
           Protocolo Sono Profundo
         </p>
 
@@ -517,8 +574,12 @@ function Hero() {
           <AppIcon />
         </div>
 
+        {/* Prova social — fica imediatamente sob o app icon, antes do headline,
+            para o visitante captar credibilidade nos primeiros 2 segundos. */}
+        <SocialProofTicker />
+
         <h1
-          className="reveal-soft animation-delay-100 h-display mx-auto mt-14 max-w-[980px] sm:mt-16"
+          className="reveal-soft animation-delay-200 h-display mx-auto mt-9 max-w-[980px] sm:mt-11"
           style={{
             fontSize: 'clamp(34px, 6.2vw, 80px)',
             lineHeight: 1.02,
@@ -538,22 +599,21 @@ function Hero() {
         </h1>
 
         <p
-          className="reveal-soft animation-delay-200 mx-auto mt-8 max-w-[600px] text-[#6b6b6b]"
+          className="reveal-soft animation-delay-300 mx-auto mt-7 max-w-[600px] text-[#6b6b6b]"
           style={{ fontSize: 'clamp(16.5px, 1.35vw, 18.5px)', lineHeight: 1.55 }}
         >
-          Sete noites para ensinar seu sistema nervoso a soltar. Uma meditação
-          por noite, em sequência. Você não escolhe nada — só aperta play.
+          Sete noites guiadas para seu corpo desaprender a insônia.
+          Não tem app pra configurar nem técnica pra decorar — você aperta play e dorme.
         </p>
 
-        <div className="reveal-soft animation-delay-300 mx-auto mt-11 flex w-full max-w-[420px] flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
-          <PrimaryCheckoutCta id="hero-cta" label="Começar esta noite" responsiveFull />
+        <div className="reveal-soft animation-delay-300 mx-auto mt-9 flex w-full max-w-[420px] flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
+          <PrimaryCheckoutCta id="hero-cta" label="Quero dormir hoje · R$ 147" responsiveFull />
           <OutlineNightsLink responsiveFull />
         </div>
 
-        <p className="reveal-soft animation-delay-400 mx-auto mt-5 max-w-[480px] text-[13px] leading-[1.55] text-[#6b6b6b]">
-          <span className="font-bold text-[#d4a24c]">R$ 147</span>
-          <span className="text-[#999]">{' '}· pagamento único</span>
-        </p>
+        {/* Risk reversal — três badges minimalistas. Faz o CTA parecer seguro
+            de clicar sem precisar rolar até a oferta. */}
+        <HeroTrustRow />
       </div>
     </section>
   );
