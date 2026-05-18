@@ -8,6 +8,8 @@ import {
   Lock,
   Moon,
   Music,
+  Pause,
+  Play,
   ShieldCheck,
   Sparkles,
   Star,
@@ -16,6 +18,50 @@ import {
 } from 'lucide-react';
 import { useCheckout } from './hooks/useCheckout';
 import { warmupBackend } from './lib/warmup';
+import { trackPixel } from './lib/tracking';
+
+const VIEW_CONTENT_FIRED_KEY = 'sono_view_content_fired';
+
+// Dispara ViewContent uma única vez por sessão quando o usuário chega
+// no bloco de oferta (#oferta) — sinaliza intenção de compra para o algoritmo
+// do Meta otimizar e habilita audiência de remarketing.
+function useViewContentTracking() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (sessionStorage.getItem(VIEW_CONTENT_FIRED_KEY)) return;
+    } catch {
+      /* sessionStorage indisponível: segue */
+    }
+
+    const offer = document.getElementById('oferta');
+    if (!offer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        trackPixel('ViewContent', {
+          content_name: 'Protocolo Sono Profundo — 7 noites',
+          content_ids: ['protocolo_sono_7_noites'],
+          content_type: 'product',
+          value: 147,
+          currency: 'BRL',
+        });
+        try {
+          sessionStorage.setItem(VIEW_CONTENT_FIRED_KEY, '1');
+        } catch {
+          /* ignore */
+        }
+        observer.disconnect();
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(offer);
+    return () => observer.disconnect();
+  }, []);
+}
 
 const MARKETING_STORAGE_KEY = 'sono_mkt_ctx';
 
@@ -138,9 +184,9 @@ const floatingIcons: FloatingIcon[] = [
 ];
 
 const phaseData = [
-  { word: 'Respiração', color: '#0a0a0a' },
-  { word: 'Presença', color: '#0a0a0a' },
-  { word: 'Segurança', color: '#c4c4be' },
+  { word: 'Respire', color: '#0a0a0a' },
+  { word: 'Solte', color: '#0a0a0a' },
+  { word: 'Durma', color: '#c4c4be' },
 ];
 
 const phaseRevealAt = [0.18, 0.48, 0.78];
@@ -199,7 +245,7 @@ const faqItems: FaqItem[] = [
   { q: 'Posso ouvir mais de uma vez?', a: 'Sim. Acesso vitalício. Muita gente repete a sequência depois de períodos de estresse.' },
   { q: 'E se não funcionar pra mim?', a: '7 dias de garantia incondicional. Você escreve "não funcionou" e devolvemos 100%. Sem formulário, sem ligação, sem pergunta.' },
   { q: 'Vou ser cobrado de novo?', a: 'Não. Pagamento único, acesso vitalício às 7 noites. O ecossistema Ecotopia tem outros conteúdos, mas você descobre no seu tempo. Nenhuma cobrança volta a aparecer.' },
-  { q: 'Como recebo o protocolo depois de pagar?', a: 'Na hora. O pagamento é processado pelo Mercado Pago e você recebe o acesso imediato no seu email. Pode ouvir a Noite 1 hoje mesmo.' },
+  { q: 'Como recebo o protocolo depois de pagar?', a: 'Na hora. Depois do pagamento via Mercado Pago, você é redirecionado para o app onde cria sua conta (ou faz login se já tem) usando o mesmo email da compra. O acesso é liberado automaticamente e você já consegue ouvir a Noite 1 hoje.' },
 ];
 
 type Testimonial = {
@@ -1016,6 +1062,275 @@ function Mechanism() {
 }
 
 // ============================================================
+// 3A · ARABELLA PREVIEW — pull-quote editorial + player de áudio
+// ============================================================
+
+const ARABELLA_AUDIO_SRC = '/audio/arabella-preview.mp3';
+
+function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function ArabellaPreview() {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [hasError, setHasError] = useState(false);
+
+  // Eventos do <audio>
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+    const onTime = () => setCurrentTime(audio.currentTime);
+    const onLoad = () => {
+      if (Number.isFinite(audio.duration)) setDuration(audio.duration);
+    };
+    const onError = () => setHasError(true);
+
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('timeupdate', onTime);
+    audio.addEventListener('loadedmetadata', onLoad);
+    audio.addEventListener('error', onError);
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('timeupdate', onTime);
+      audio.removeEventListener('loadedmetadata', onLoad);
+      audio.removeEventListener('error', onError);
+    };
+  }, []);
+
+  // Pause automático quando sai da viewport (boa UX em página de venda)
+  useEffect(() => {
+    const section = sectionRef.current;
+    const audio = audioRef.current;
+    if (!section || !audio) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && !audio.paused) audio.pause();
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => setHasError(true));
+    } else {
+      audio.pause();
+    }
+  };
+
+  if (hasError) return null;
+
+  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+  const durationLabel = duration > 0 ? formatTime(duration) : '— : —';
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-[#fafaf7] px-5 py-24 sm:px-8 sm:py-[140px]"
+    >
+      <audio
+        ref={audioRef}
+        src={ARABELLA_AUDIO_SRC}
+        preload="metadata"
+        crossOrigin="anonymous"
+      />
+
+      {/* Atmosphere — soft golden glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(50% 60% at 50% 40%, rgba(212,162,76,0.08) 0%, transparent 70%)',
+        }}
+      />
+
+      {/* Asymmetric corner mark */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute hidden sm:flex flex-col items-end gap-2"
+        style={{ top: '60px', right: '44px' }}
+      >
+        <div style={{ width: '28px', height: '1px', background: 'rgba(212,162,76,0.45)' }} />
+        <p
+          className="font-serif italic leading-none"
+          style={{ fontSize: '14px', color: 'rgba(212,162,76,0.7)', letterSpacing: '0.02em' }}
+        >
+          n.<sup style={{ fontSize: '9px' }}>o</sup> 01
+        </p>
+      </div>
+
+      <div className="relative mx-auto max-w-[760px] text-center">
+        <p className="scroll-reveal eyebrow mb-12 sm:mb-14">A voz das 7 noites</p>
+
+        {/* Pull-quote */}
+        <blockquote
+          className="scroll-reveal mx-auto font-serif italic font-light"
+          style={{
+            fontSize: 'clamp(24px, 4.2vw, 42px)',
+            lineHeight: 1.32,
+            letterSpacing: '-0.012em',
+            color: '#0a0a0a',
+            maxWidth: '720px',
+          }}
+        >
+          <span
+            aria-hidden
+            className="block font-serif"
+            style={{
+              fontSize: '60px',
+              lineHeight: 0.8,
+              color: 'rgba(212,162,76,0.55)',
+              marginBottom: '14px',
+            }}
+          >
+            “
+          </span>
+          Inspire fundo.
+          <br />
+          Solte os ombros.
+          <br />
+          O dia acabou.
+          <br />
+          Você não precisa fazer nada agora.
+        </blockquote>
+
+        {/* Attribution */}
+        <div className="scroll-reveal mt-12 flex items-center justify-center gap-4">
+          <div className="h-px w-10" style={{ background: 'rgba(212,162,76,0.45)' }} />
+          <p
+            className="text-[10.5px] font-medium uppercase tracking-[0.28em]"
+            style={{ color: '#6b6b6b' }}
+          >
+            Voz da Arabella · Prévia da Noite 1
+          </p>
+          <div className="h-px w-10" style={{ background: 'rgba(212,162,76,0.45)' }} />
+        </div>
+
+        {/* Player */}
+        <div className="scroll-reveal mt-14 sm:mt-16 flex flex-col items-center">
+          <button
+            type="button"
+            onClick={togglePlay}
+            aria-label={isPlaying ? 'Pausar' : 'Tocar prévia'}
+            className="group relative flex items-center justify-center transition-transform duration-300 hover:scale-[1.04] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fafaf7] rounded-full"
+            style={{
+              width: '88px',
+              height: '88px',
+              background: 'linear-gradient(140deg, #0a0a0a 0%, #1f1f1f 100%)',
+              boxShadow:
+                '0 20px 48px rgba(10,10,10,0.18), 0 0 0 1px rgba(212,162,76,0.18), 0 0 0 8px rgba(212,162,76,0.04)',
+            }}
+          >
+            {/* Progress ring */}
+            <svg
+              aria-hidden
+              className="absolute inset-0 -rotate-90"
+              viewBox="0 0 100 100"
+              style={{ width: '100%', height: '100%' }}
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r="47"
+                fill="none"
+                stroke="rgba(212,162,76,0.12)"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="47"
+                fill="none"
+                stroke="#d4a24c"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 47}`}
+                strokeDashoffset={`${2 * Math.PI * 47 * (1 - progress / 100)}`}
+                style={{ transition: 'stroke-dashoffset 200ms linear' }}
+              />
+            </svg>
+
+            {/* Pulse ring while playing */}
+            {isPlaying && (
+              <span
+                aria-hidden
+                className="arabella-pulse absolute inset-0 rounded-full"
+                style={{ border: '1px solid rgba(212,162,76,0.5)' }}
+              />
+            )}
+
+            {/* Icon */}
+            <span className="relative z-10 flex h-6 w-6 items-center justify-center">
+              {isPlaying ? (
+                <Pause
+                  className="h-[22px] w-[22px]"
+                  strokeWidth={1.5}
+                  fill="#d4a24c"
+                  style={{ color: '#d4a24c' }}
+                />
+              ) : (
+                <Play
+                  className="h-[22px] w-[22px]"
+                  strokeWidth={1.5}
+                  fill="#d4a24c"
+                  style={{ color: '#d4a24c', marginLeft: '3px' }}
+                />
+              )}
+            </span>
+          </button>
+
+          {/* Time / label */}
+          <p
+            className="mt-6 font-mono text-[12.5px] font-medium"
+            style={{
+              color: '#0a0a0a',
+              letterSpacing: '0.06em',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            <span>{formatTime(currentTime)}</span>
+            <span style={{ color: 'rgba(10,10,10,0.3)', margin: '0 8px' }}>/</span>
+            <span style={{ color: '#6b6b6b' }}>{durationLabel}</span>
+          </p>
+
+          <p
+            className="mt-3 text-[11.5px] font-medium uppercase tracking-[0.2em]"
+            style={{ color: '#999' }}
+          >
+            {isPlaying ? 'Tocando' : 'Tocar prévia'}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
 // 3B · SOUND EXPERIENCE
 // ============================================================
 
@@ -1630,6 +1945,7 @@ function StickyCheckoutBar() {
 
 function App() {
   useScrollReveal();
+  useViewContentTracking();
   const { loading: autoCheckoutLoading, openCheckout } = useCheckout();
   const autoCheckoutFired = useRef(false);
   const [autoCheckoutTriggered, setAutoCheckoutTriggered] = useState(false);
@@ -1666,8 +1982,9 @@ function App() {
         <PainMirror />
         <UniqueMechanism />
         <Mechanism />
-        <NightsGrid />
+        <ArabellaPreview />
         <SoundExperience />
+        <NightsGrid />
         <Testimonials />
         <Offer />
         <Faq />
