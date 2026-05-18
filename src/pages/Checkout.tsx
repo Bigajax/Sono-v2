@@ -768,10 +768,13 @@ function CardFlow({ onBack }: { onBack: () => void }) {
     );
   }
 
-  const initialization = useMemo(() => ({ amount: PRODUCT_PRICE }), []);
+  const initialization = useMemo(
+    () => ({ amount: PRODUCT_PRICE, payer: { email: '' } }),
+    []
+  );
   const customization = useMemo(
     () => ({
-      paymentMethods: { maxInstallments: 3 },
+      paymentMethods: { minInstallments: 1, maxInstallments: 3 },
       visual: {
         style: {
           theme: 'default' as const,
@@ -922,11 +925,11 @@ function CardBrandsStrip() {
 // ============================================================
 // Security footer — linha compacta com bandeiras + trust signals
 // ============================================================
-function SecurityFooter() {
+function SecurityFooter({ showBrands = true }: { showBrands?: boolean }) {
   return (
     <footer className="mx-auto max-w-[640px] px-5 pb-12 sm:px-8">
       <div className="mt-2 flex flex-col items-center gap-5">
-        <CardBrandsStrip />
+        {showBrands && <CardBrandsStrip />}
 
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#999]">
           <span className="inline-flex items-center gap-1.5">
@@ -981,7 +984,7 @@ function Checkout() {
       {!method && <PricingCard onContinue={setMethod} />}
       {method === 'pix' && <PixFlow onBack={() => setMethod(null)} />}
       {method === 'card' && <CardFlow onBack={() => setMethod(null)} />}
-      <SecurityFooter />
+      <SecurityFooter showBrands={method !== 'card'} />
     </main>
   );
 }
