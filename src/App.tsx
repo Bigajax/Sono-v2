@@ -8,8 +8,6 @@ import {
   Lock,
   Moon,
   Music,
-  Pause,
-  Play,
   ShieldCheck,
   Sparkles,
   Star,
@@ -399,9 +397,17 @@ function Nav() {
           onMouseEnter={prewarm}
           onFocus={prewarm}
           disabled={loading}
-          className="inline-flex items-center rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] disabled:opacity-60 sm:px-5 sm:py-2.5 sm:text-[14px]"
+          className="inline-flex items-center gap-1 rounded-full bg-[#0a0a0a] px-4 py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-[#1f1f1f] disabled:opacity-60 sm:px-5 sm:py-2.5 sm:text-[14px]"
         >
-          {loading ? 'Abrindo…' : 'R$ 147 →'}
+          {loading ? (
+            'Abrindo…'
+          ) : (
+            <>
+              <span className="sm:hidden">Começar</span>
+              <span className="hidden sm:inline">Começar esta noite</span>
+              <ArrowRight className="h-[14px] w-[14px]" strokeWidth={2.25} />
+            </>
+          )}
         </button>
       </div>
     </nav>
@@ -1079,10 +1085,8 @@ function ArabellaPreview() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [hasError, setHasError] = useState(false);
 
-  // Eventos do <audio>
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -1094,28 +1098,23 @@ function ArabellaPreview() {
       setCurrentTime(0);
     };
     const onTime = () => setCurrentTime(audio.currentTime);
-    const onLoad = () => {
-      if (Number.isFinite(audio.duration)) setDuration(audio.duration);
-    };
     const onError = () => setHasError(true);
 
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('timeupdate', onTime);
-    audio.addEventListener('loadedmetadata', onLoad);
     audio.addEventListener('error', onError);
     return () => {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('timeupdate', onTime);
-      audio.removeEventListener('loadedmetadata', onLoad);
       audio.removeEventListener('error', onError);
     };
   }, []);
 
-  // Pause automático quando sai da viewport (boa UX em página de venda)
+  // Pausa automático quando a seção sai da viewport
   useEffect(() => {
     const section = sectionRef.current;
     const audio = audioRef.current;
@@ -1144,13 +1143,14 @@ function ArabellaPreview() {
 
   if (hasError) return null;
 
-  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
-  const durationLabel = duration > 0 ? formatTime(duration) : '— : —';
+  // Hora atual formatada (atualizada na renderização — bom o suficiente)
+  const now = new Date();
+  const statusTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#fafaf7] px-5 py-24 sm:px-8 sm:py-[140px]"
+      className="relative overflow-hidden bg-[#fafaf7] px-5 py-20 sm:px-8 sm:py-[120px]"
     >
       <audio
         ref={audioRef}
@@ -1159,172 +1159,240 @@ function ArabellaPreview() {
         crossOrigin="anonymous"
       />
 
-      {/* Atmosphere — soft golden glow */}
+      {/* Glow atmosférico de fundo */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(50% 60% at 50% 40%, rgba(212,162,76,0.08) 0%, transparent 70%)',
+            'radial-gradient(60% 55% at 50% 45%, rgba(124,110,246,0.06) 0%, transparent 70%)',
         }}
       />
 
-      {/* Asymmetric corner mark */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute hidden sm:flex flex-col items-end gap-2"
-        style={{ top: '60px', right: '44px' }}
-      >
-        <div style={{ width: '28px', height: '1px', background: 'rgba(212,162,76,0.45)' }} />
-        <p
-          className="font-serif italic leading-none"
-          style={{ fontSize: '14px', color: 'rgba(212,162,76,0.7)', letterSpacing: '0.02em' }}
-        >
-          n.<sup style={{ fontSize: '9px' }}>o</sup> 01
+      <div className="relative mx-auto max-w-[1080px]">
+        {/* Header editorial */}
+        <div className="mx-auto max-w-[640px] text-center">
+          <p className="scroll-reveal eyebrow mb-8">Antes da primeira noite</p>
+          <h2
+            className="scroll-reveal h-section mx-auto"
+            style={{ fontSize: 'clamp(28px, 4.5vw, 48px)' }}
+          >
+            Conheça a Arabella{' '}
+            <span className="text-[#6b6b6b]">e o protocolo.</span>
+          </h2>
+          <p className="scroll-reveal stagger-1 mx-auto mt-6 max-w-[480px] text-[15px] leading-[1.6] text-[#6b6b6b] sm:text-[16px]">
+            Uma introdução de menos de 1 minuto: quem vai te guiar pelas 7 noites
+            {' '}e o que esperar do que vem pela frente.
+          </p>
+        </div>
+
+        {/* Mockup iPhone */}
+        <div className="scroll-reveal reveal-scale mx-auto mt-14 flex justify-center sm:mt-16">
+          <div className="iphone-mockup">
+            {/* Frame */}
+            <div className="iphone-frame">
+              {/* Side rails (lateral buttons illusion) */}
+              <span aria-hidden className="iphone-button iphone-button--volume-up" />
+              <span aria-hidden className="iphone-button iphone-button--volume-down" />
+              <span aria-hidden className="iphone-button iphone-button--silent" />
+              <span aria-hidden className="iphone-button iphone-button--power" />
+
+              {/* Screen */}
+              <div className="iphone-screen" style={{ background: '#0C0A1D' }}>
+                {/* Dynamic Island */}
+                <div className="iphone-dynamic-island" aria-hidden />
+
+                {/* Status bar */}
+                <div className="flex items-center justify-between px-7 pt-3.5 text-white">
+                  <span className="text-[13px] font-semibold tabular-nums">
+                    {statusTime}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    {/* Signal */}
+                    <svg width="17" height="11" viewBox="0 0 17 11" fill="white" aria-hidden>
+                      <rect x="0"  y="7" width="3" height="4" rx="0.5" />
+                      <rect x="4.5" y="5" width="3" height="6" rx="0.5" />
+                      <rect x="9"  y="3" width="3" height="8" rx="0.5" />
+                      <rect x="13.5" y="0" width="3" height="11" rx="0.5" />
+                    </svg>
+                    {/* WiFi */}
+                    <svg width="15" height="11" viewBox="0 0 15 11" fill="white" aria-hidden>
+                      <path d="M7.5 0C4.5 0 1.7 1 0 2.6L1.4 4.1C3 2.7 5.1 1.9 7.5 1.9c2.4 0 4.5 0.8 6.1 2.2L15 2.6C13.3 1 10.5 0 7.5 0zM7.5 4c-2 0-3.8 0.7-5 1.8l1.4 1.4c1-0.8 2.2-1.3 3.6-1.3 1.4 0 2.6 0.5 3.6 1.3l1.4-1.4c-1.2-1.1-3-1.8-5-1.8zM7.5 8c-1 0-1.8 0.4-2.5 1L7.5 11l2.5-2c-0.7-0.6-1.5-1-2.5-1z"/>
+                    </svg>
+                    {/* Battery */}
+                    <span className="ml-0.5 flex items-center">
+                      <span
+                        className="relative inline-block rounded-[3.5px]"
+                        style={{
+                          width: '24px',
+                          height: '11px',
+                          border: '1px solid rgba(255,255,255,0.4)',
+                          padding: '1.5px',
+                        }}
+                      >
+                        <span
+                          className="block h-full rounded-[1.5px] bg-white"
+                          style={{ width: '78%' }}
+                        />
+                      </span>
+                      <span
+                        className="block"
+                        style={{
+                          width: '1.5px',
+                          height: '4px',
+                          background: 'rgba(255,255,255,0.4)',
+                          marginLeft: '1px',
+                          borderRadius: '0 1px 1px 0',
+                        }}
+                      />
+                    </span>
+                  </span>
+                </div>
+
+                {/* App content — réplica fiel do PlayerScreen */}
+                <div className="flex flex-col items-center px-5 pt-7 text-center">
+                  {/* Brand — mesma logo do nav, versão clara (branca) para o app dark */}
+                  <img
+                    src="/images/logo-light.webp"
+                    alt="Ecotopia"
+                    width={196}
+                    height={48}
+                    decoding="async"
+                    className="h-10 w-auto opacity-75"
+                  />
+
+                  {/* Night artwork */}
+                  <div
+                    className="mt-5 w-full overflow-hidden rounded-[18px]"
+                    style={{
+                      aspectRatio: '1/1',
+                      position: 'relative',
+                    }}
+                  >
+                    <img
+                      src="/images/intro-arabella.webp"
+                      alt="Introdução do protocolo"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    {/* Gradient overlay para legibilidade do badge */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          'linear-gradient(to top, rgba(12,10,29,0.55) 0%, transparent 50%)',
+                      }}
+                    />
+                    {/* Badge "INTRODUÇÃO" — apresentação do protocolo */}
+                    <span
+                      className="absolute left-3 top-3 inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold tracking-[0.18em]"
+                      style={{
+                        background: 'rgba(212,168,71,0.22)',
+                        border: '1px solid rgba(212,168,71,0.5)',
+                        color: '#F0E3C0',
+                      }}
+                    >
+                      INTRODUÇÃO
+                    </span>
+
+                    {/* Wave indicator (quando tocando) */}
+                    {isPlaying && (
+                      <div
+                        aria-hidden
+                        className="absolute bottom-3 right-3 flex items-end gap-[3px]"
+                      >
+                        {[0, 1, 2, 3].map((i) => (
+                          <span
+                            key={i}
+                            className="iphone-wave-bar"
+                            style={{ animationDelay: `${i * 0.15}s` }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Title + duração */}
+                  <h3
+                    className="mt-6 font-serif text-[20px] font-medium leading-tight"
+                    style={{ color: '#F5F0E8' }}
+                  >
+                    Conheça a Arabella
+                  </h3>
+                  <p
+                    className="mt-1.5 text-[11.5px] font-medium tracking-wide"
+                    style={{ color: 'rgba(245,240,232,0.40)' }}
+                  >
+                    Apresentação · 1 min
+                  </p>
+
+                  {/* Convite a ouvir a introdução */}
+                  <p
+                    className="mt-7 text-[13.5px] font-medium leading-snug"
+                    style={{ color: 'rgba(245,240,232,0.70)' }}
+                  >
+                    {isPlaying ? (
+                      <>Ouvindo a apresentação…</>
+                    ) : (
+                      <>
+                        Toque play e ouça
+                        <br />
+                        a apresentação do protocolo.
+                      </>
+                    )}
+                  </p>
+
+                  {/* Play button (FUNCIONAL — toca a prévia da Arabella) */}
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    aria-label={isPlaying ? 'Pausar prévia' : 'Tocar prévia da Noite 1'}
+                    className={`mt-5 flex h-[72px] w-[72px] items-center justify-center rounded-full transition-transform active:scale-[0.94] ${
+                      isPlaying ? '' : 'iphone-play-pulse'
+                    }`}
+                    style={{
+                      background: 'linear-gradient(135deg, #7C6EF6 0%, #9B8BFF 100%)',
+                      boxShadow: '0 12px 32px rgba(124,110,246,0.45)',
+                    }}
+                  >
+                    {isPlaying ? (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden>
+                        <rect x="6"  y="5" width="4" height="14" rx="1" />
+                        <rect x="14" y="5" width="4" height="14" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="white" aria-hidden>
+                        <polygon points="6,4 20,12 6,20" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Tempo decorrido (só quando começa a tocar) */}
+                  <p
+                    className="mt-3 font-mono text-[11px] transition-opacity duration-300"
+                    style={{
+                      color: 'rgba(245,240,232,0.50)',
+                      fontVariantNumeric: 'tabular-nums',
+                      letterSpacing: '0.05em',
+                      opacity: currentTime > 0 ? 1 : 0,
+                    }}
+                  >
+                    {formatTime(currentTime > 0 ? currentTime : 0)}
+                  </p>
+                </div>
+
+                {/* Home indicator */}
+                <div className="iphone-home-indicator" aria-hidden />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Caption editorial */}
+        <p className="scroll-reveal stagger-2 mx-auto mt-10 max-w-[480px] text-center text-[13px] leading-[1.65] text-[#6b6b6b] sm:mt-12 sm:text-[14px]">
+          A mesma voz que abre cada uma das 7 noites do protocolo.
+          {' '}Áudio real, gravado pela Arabella.
         </p>
-      </div>
-
-      <div className="relative mx-auto max-w-[760px] text-center">
-        <p className="scroll-reveal eyebrow mb-12 sm:mb-14">A voz das 7 noites</p>
-
-        {/* Pull-quote */}
-        <blockquote
-          className="scroll-reveal mx-auto font-serif italic font-light"
-          style={{
-            fontSize: 'clamp(24px, 4.2vw, 42px)',
-            lineHeight: 1.32,
-            letterSpacing: '-0.012em',
-            color: '#0a0a0a',
-            maxWidth: '720px',
-          }}
-        >
-          <span
-            aria-hidden
-            className="block font-serif"
-            style={{
-              fontSize: '60px',
-              lineHeight: 0.8,
-              color: 'rgba(212,162,76,0.55)',
-              marginBottom: '14px',
-            }}
-          >
-            “
-          </span>
-          Inspire fundo.
-          <br />
-          Solte os ombros.
-          <br />
-          O dia acabou.
-          <br />
-          Você não precisa fazer nada agora.
-        </blockquote>
-
-        {/* Attribution */}
-        <div className="scroll-reveal mt-12 flex items-center justify-center gap-4">
-          <div className="h-px w-10" style={{ background: 'rgba(212,162,76,0.45)' }} />
-          <p
-            className="text-[10.5px] font-medium uppercase tracking-[0.28em]"
-            style={{ color: '#6b6b6b' }}
-          >
-            Voz da Arabella · Prévia da Noite 1
-          </p>
-          <div className="h-px w-10" style={{ background: 'rgba(212,162,76,0.45)' }} />
-        </div>
-
-        {/* Player */}
-        <div className="scroll-reveal mt-14 sm:mt-16 flex flex-col items-center">
-          <button
-            type="button"
-            onClick={togglePlay}
-            aria-label={isPlaying ? 'Pausar' : 'Tocar prévia'}
-            className="group relative flex items-center justify-center transition-transform duration-300 hover:scale-[1.04] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a24c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fafaf7] rounded-full"
-            style={{
-              width: '88px',
-              height: '88px',
-              background: 'linear-gradient(140deg, #0a0a0a 0%, #1f1f1f 100%)',
-              boxShadow:
-                '0 20px 48px rgba(10,10,10,0.18), 0 0 0 1px rgba(212,162,76,0.18), 0 0 0 8px rgba(212,162,76,0.04)',
-            }}
-          >
-            {/* Progress ring */}
-            <svg
-              aria-hidden
-              className="absolute inset-0 -rotate-90"
-              viewBox="0 0 100 100"
-              style={{ width: '100%', height: '100%' }}
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="47"
-                fill="none"
-                stroke="rgba(212,162,76,0.12)"
-                strokeWidth="1.5"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="47"
-                fill="none"
-                stroke="#d4a24c"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 47}`}
-                strokeDashoffset={`${2 * Math.PI * 47 * (1 - progress / 100)}`}
-                style={{ transition: 'stroke-dashoffset 200ms linear' }}
-              />
-            </svg>
-
-            {/* Pulse ring while playing */}
-            {isPlaying && (
-              <span
-                aria-hidden
-                className="arabella-pulse absolute inset-0 rounded-full"
-                style={{ border: '1px solid rgba(212,162,76,0.5)' }}
-              />
-            )}
-
-            {/* Icon */}
-            <span className="relative z-10 flex h-6 w-6 items-center justify-center">
-              {isPlaying ? (
-                <Pause
-                  className="h-[22px] w-[22px]"
-                  strokeWidth={1.5}
-                  fill="#d4a24c"
-                  style={{ color: '#d4a24c' }}
-                />
-              ) : (
-                <Play
-                  className="h-[22px] w-[22px]"
-                  strokeWidth={1.5}
-                  fill="#d4a24c"
-                  style={{ color: '#d4a24c', marginLeft: '3px' }}
-                />
-              )}
-            </span>
-          </button>
-
-          {/* Time / label */}
-          <p
-            className="mt-6 font-mono text-[12.5px] font-medium"
-            style={{
-              color: '#0a0a0a',
-              letterSpacing: '0.06em',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            <span>{formatTime(currentTime)}</span>
-            <span style={{ color: 'rgba(10,10,10,0.3)', margin: '0 8px' }}>/</span>
-            <span style={{ color: '#6b6b6b' }}>{durationLabel}</span>
-          </p>
-
-          <p
-            className="mt-3 text-[11.5px] font-medium uppercase tracking-[0.2em]"
-            style={{ color: '#999' }}
-          >
-            {isPlaying ? 'Tocando' : 'Tocar prévia'}
-          </p>
-        </div>
       </div>
     </section>
   );
